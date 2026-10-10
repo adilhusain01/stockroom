@@ -1,0 +1,15 @@
+{
+  "name": "stockroom",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "scripts": {
+    "contracts:build": "forge build --root contracts",
+    "contracts:test": "forge test --root contracts -vv",
+    "contracts:fork": "forge test --root contracts --match-path 'test/fork/*' --no-match-path zzz -vv",
+    "contracts:fmt": "forge fmt --root contracts",
+    "keeper": "pnpm --filter @stockroom/keeper start",
+    "api": "pnpm --filter @stockroom/api start",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

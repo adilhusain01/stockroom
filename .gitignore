@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+contracts/lcov.info
+contracts/coverage/
+
+# apps
+.next/
+dist/
+.turbo/
+.vercel/
+coverage/
+apps/keeper/runs/
+apps/api/data/
+*.sqlite
+*.db
+
+# misc
+*.log
+.DS_Store
+.claude/worktrees/

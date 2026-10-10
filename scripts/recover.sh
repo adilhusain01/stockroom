@@ -84,3 +84,21 @@ if [ "$(python3 -c "print($BNB > $KEEP)")" = "True" ]; then
   AMT=$(python3 -c "print($BNB - $KEEP)"); echo "   BNB $AMT wei"; send --value "$AMT" "$TO"
 fi
 echo "done. balances left: BNB $(cast balance $ME --ether), USDT $(bal $USDT $ME)"
+
+echo "== 7. desk analyst wallet (Agent Studio keystore; skipped when absent)"
+AGENT_ENV="$ROOT/agents/stockroomdesk/.studio/.env.local"
+AGENT_KS=$(ls "$ROOT"/agents/stockroomdesk/.studio/wallets/0x*.json 2>/dev/null | head -1)
+if [ -n "$AGENT_KS" ] && [ -f "$AGENT_ENV" ]; then
+  AGENT_PW=$(grep -E '^WALLET_PASSWORD=' "$AGENT_ENV" | cut -d= -f2-)
+  AGENT_ADDR=$(basename "$AGENT_KS" .json)
+  ABNB=$(cast balance "$AGENT_ADDR")
+  if [ "$(python3 -c "print($ABNB > 500000000000000)")" = "True" ]; then
+    AMT=$(python3 -c "print($ABNB - 300000000000000)")  # leave dust for gas
+    echo "   $AGENT_ADDR: BNB $AMT wei"
+    cast send --keystore "$AGENT_KS" --password "$AGENT_PW" --value "$AMT" "$TO" | grep -E "transactionHash" | awk '{print "   tx " $2}'
+  else
+    echo "   $AGENT_ADDR holds only dust"
+  fi
+else
+  echo "   no agent keystore here"
+fi

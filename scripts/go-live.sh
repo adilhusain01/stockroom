@@ -15,6 +15,14 @@ echo "burner $ME holds $(cast balance $ME --ether) BNB"
 echo "== 1. swap BNB into USDT and NVDAB"
 bash "$ROOT/scripts/fund-from-bnb.sh"
 
+# The Agent Studio seller signs with its own keystore wallet (agents/stockroomdesk/.studio/wallets); it needs a
+# little BNB for the ERC-8004 registration and ERC-8183 deliverable submits. 0.003 BNB covers dozens of them.
+AGENT_WALLET="${AGENT_WALLET:-$(grep -E '^address *= *"0x' "$ROOT/agents/stockroomdesk/app/agent/studio.toml" | sed -E 's/.*"(0x[0-9a-fA-F]+)".*/\1/')}"
+if [ -n "$AGENT_WALLET" ] && [ "$(cast balance "$AGENT_WALLET")" = "0" ]; then
+  echo "== 1b. fund the desk analyst wallet $AGENT_WALLET with 0.003 BNB"
+  cast send --private-key "$DEPLOYER_PRIVATE_KEY" --value 3000000000000000 "$AGENT_WALLET" | grep -E "transactionHash|status"
+fi
+
 echo "== 2. deploy $MARKETS markets"
 cd "$ROOT/contracts"
 mkdir -p deployments
@@ -36,4 +44,11 @@ pnpm exec pm2 start ecosystem.config.cjs 2>&1 | tail -8
 pnpm exec pm2 save >/dev/null
 sleep 5
 curl -sS http://127.0.0.1:4310/rates.json | head -c 400; echo
+
+echo "== 6. desk analyst identity (ERC-8004, from the agent wallet; needs the 0.003 BNB from step 1b)"
+if [ -n "$AGENT_WALLET" ]; then
+  (cd "$ROOT/agents/stockroomdesk/app/agent" && /usr/local/bin/bag erc8004 register --network bsc-mainnet \
+    --endpoint https://stockroom.adilhusain.xyz/agent/ --name "Stockroom Desk Analyst" \
+    --description "Paid research desk for Stockroom, the on-chain stock lending market for Binance bStocks on BNB Chain: borrow desk briefs over A2A, MCP and x402" 2>&1 | tail -4) || echo "   registration failed; rerun this step by hand"
+fi
 echo "live. add the Caddy block from docs/runbook.md once DNS points here."

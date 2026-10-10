@@ -10,6 +10,7 @@ const links = [
   { href: "/account", label: "Account" },
   { href: "/rates", label: "Rates" },
   { href: "/desk", label: "Night Desk" },
+  { href: "/learn", label: "How it works" },
 ];
 
 export function TopBar() {

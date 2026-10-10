@@ -98,6 +98,7 @@ export function AccountPanel() {
                   <TableHead className="text-right">Owed</TableHead>
                   <TableHead className="text-right">Price used</TableHead>
                   <TableHead className="text-right">Debt value</TableHead>
+                  <TableHead className="text-right">Liquidates above</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -110,6 +111,7 @@ export function AccountPanel() {
                     <TableCell className="text-right tabular-nums">{fmt(p.debtRaw, 4)}</TableCell>
                     <TableCell className="text-right tabular-nums">${fmt(p.priceUsd)}</TableCell>
                     <TableCell className="text-right tabular-nums">${fmt(p.valueUsd)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p.liquidationPriceUsd ? `$${fmt(p.liquidationPriceUsd)}` : "–"}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="outline" disabled={tx.isPending} onClick={() => tx.mutate({ action: "cover", params: { ticker: p.ticker, amount: p.debtRaw } })}>
                         Cover all

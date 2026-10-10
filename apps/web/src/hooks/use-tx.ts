@@ -18,10 +18,17 @@ export function useTx() {
   return useMutation({
     mutationFn: async ({ action, params }: { action: string; params: Record<string, string | number | undefined> }) => {
       if (!address || !wallet || !publicClient) throw new Error("Connect a wallet on BNB Chain first");
-      const txs: PreparedTx[] = await api.tx(action, { ...params, account: address });
+      const { txs, simulations } = await api.txWithSimulation(action, { ...params, account: address });
       const hashes: `0x${string}`[] = [];
-      for (const tx of txs) {
-        toast.add({ title: tx.description, description: "Confirm in your wallet" });
+      for (let i = 0; i < txs.length; i++) {
+        const tx = txs[i];
+        const sim = simulations?.[i];
+        // the first step of a sequence is the only one the dry-run can judge before the earlier steps are mined
+        if (i === 0 && sim && sim.status === "FAILED") {
+          throw new Error(`Dry-run failed: ${sim.failReason ?? "unknown reason"}`);
+        }
+        const changes = sim?.balanceChanges?.length ? ` Dry-run: ${sim.balanceChanges.length} balance change${sim.balanceChanges.length === 1 ? "" : "s"}.` : "";
+        toast.add({ title: tx.description, description: `Confirm in your wallet.${changes}` });
         const hash = await wallet.sendTransaction({ to: tx.to, data: tx.data, value: BigInt(0), chain: wallet.chain });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         if (receipt.status !== "success") throw new Error(`Transaction reverted: ${hash}`);

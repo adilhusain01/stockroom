@@ -15,9 +15,12 @@ Stock lending for bStocks on BNB Chain. Holders lend tokenized stocks they alrea
 | `contracts/` | Foundry. `Controller`, `LendingPool`, `OracleRouter`, `RelayFeed`, `MarketCalendar`, `ShortRouter`, `Liquidator`, `RiskMath`. 101 unit tests plus 5 tests against a BSC mainnet fork. |
 | `packages/sdk/` | ABIs, BSC addresses, the deployment loader and a signed client for the Binance Web3 Wallet API. |
 | `apps/keeper/` | Relays APRO prices into the feeds, pushes reference anchors, runs the flash liquidator. |
-| `apps/api/` | Read API: markets, rates feed (`/rates.json`), accounts. |
-| `skills/stockroom/` | Binance Agentic Wallet skill: lend, borrow, short and cover in plain language. |
-| `scripts/` | ABI export and the fork end-to-end check. |
+| `apps/api/` | Read API: markets, rates feed (`/rates.json`), accounts, prepared calldata (`/tx/:action`, with a Binance Transaction API dry-run on `?simulate=1`), the paid feed over B402. |
+| `apps/web/` | Next.js app: markets, lend and borrow panels, account health, rates, the desk, a plain-language explainer. |
+| `skills/stockroom/` | Binance Agentic Wallet skill and helper script: lend, borrow, short and cover in plain language. |
+| `agents/stockroomdesk/` | BNB Agent Studio seller: sells borrow desk briefs over A2A, MCP and x402 (ERC-8183), with read-only Stockroom tools. |
+| `scripts/` | ABI export, fork checks, mainnet go-live, funding, recovery and ownership transfer. |
+| `docs/` | Runbook, architecture and threat model, submission notes, raw material for the Developer Experience Report. |
 
 ## Getting started
 
@@ -71,9 +74,22 @@ pnpm keeper nightdesk register  # ERC-8004 identity on BSC, once
 pnpm keeper nightdesk run       # the Friday-to-Monday loop
 ```
 
+Desk Analyst (the BNB Agent Studio seller; a separate keystore wallet, never the keeper's key):
+
+```bash
+cd agents/stockroomdesk/app/agent
+pnpm install && pnpm test                 # desk maths and brief assembly, no network
+bag wallet new --generate-password        # keystore in ../../.studio/wallets (gitignored)
+bag llm activate                          # free Pieverse model, no deposit
+bag dev --port 9010                       # card at /.well-known/agent-card.json, MCP at /mcp, x402 at /x402
+bag erc8004 register --endpoint https://stockroom.adilhusain.xyz/agent/   # needs about 0.003 BNB in that wallet
+```
+
+A buyer sends the `negotiate` skill with a task such as "Desk brief for shorting 0.01 NVDAB against 10 USDT over the weekend", gets a wallet-signed quote (0.05 U), funds the ERC-8183 job, then sends `notify_funded`; the agent reads the Stockroom API through its `stockroom_*` tools and submits the brief on-chain. Live card: https://stockroom.adilhusain.xyz/agent/.well-known/agent-card.json.
+
 ## Status
 
-Contracts, keeper, API, SDK, skill, Night Desk and web app are built; unit, fork and TypeScript tests pass. Not yet done: the mainnet deployment (waiting on a funded deployer), live keeper runs with the Binance API key, the APRO allowlist request, a recorded demo, and the Developer Experience Report.
+Contracts, keeper, API, SDK, skill, Night Desk, web app and the Desk Analyst agent are built; unit, fork and TypeScript tests pass (`pnpm -r test`, `forge test`, the agent's `pnpm test`). Not yet done: the mainnet deployment (waiting on a funded deployer), live keeper runs, the APRO allowlist request, a recorded demo, and the Developer Experience Report. `docs/architecture.md` has the component map and the threat model.
 
 ## Money safety
 

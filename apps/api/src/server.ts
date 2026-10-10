@@ -5,6 +5,7 @@ import { isAddress, type Address } from "viem";
 import { accountView, deployment, markets, marketViews, sessionView, type MarketView } from "./chain.ts";
 import * as tx from "./tx.ts";
 import * as b402 from "./b402.ts";
+import { simulateTx } from "./binance.ts";
 
 /**
  * Stockroom read API. Everything here is derived from chain state; the frontend and the agents read it, and
@@ -85,30 +86,50 @@ app.get("/tx/:action", async (c) => {
     return account;
   };
   try {
+    let txs: tx.PreparedTx[];
     switch (action) {
       case "lend":
-        return c.json({ txs: tx.lendTxs(ticker, amount, needAccount()) });
+        txs = tx.lendTxs(ticker, amount, needAccount());
+        break;
       case "withdraw-lend":
-        return c.json({ txs: [tx.withdrawLendTx(ticker, amount, needAccount())] });
+        txs = [tx.withdrawLendTx(ticker, amount, needAccount())];
+        break;
       case "claim":
-        return c.json({ txs: [tx.claimTx(ticker, needAccount())] });
+        txs = [tx.claimTx(ticker, needAccount())];
+        break;
       case "deposit-collateral":
-        return c.json({ txs: tx.depositCollateralTxs(amount, needAccount()) });
+        txs = tx.depositCollateralTxs(amount, needAccount());
+        break;
       case "withdraw-collateral":
-        return c.json({ txs: [tx.withdrawCollateralTx(amount, needAccount())] });
+        txs = [tx.withdrawCollateralTx(amount, needAccount())];
+        break;
       case "borrow":
-        return c.json({ txs: [tx.borrowTx(ticker, amount, needAccount())] });
+        txs = [tx.borrowTx(ticker, amount, needAccount())];
+        break;
       case "repay":
-        return c.json({ txs: tx.repayTxs(ticker, amount === "all" ? "all" : amount, needAccount()) });
+        txs = tx.repayTxs(ticker, amount === "all" ? "all" : amount, needAccount());
+        break;
       case "set-operator":
-        return c.json({ txs: [tx.setOperatorTx()] });
+        txs = [tx.setOperatorTx()];
+        break;
       case "short":
-        return c.json({ txs: [await tx.shortTx(ticker, amount, slippage)] });
+        txs = [await tx.shortTx(ticker, amount, slippage)];
+        break;
       case "cover":
-        return c.json({ txs: [await tx.coverTx(ticker, amount, slippage)] });
+        txs = [await tx.coverTx(ticker, amount, slippage)];
+        break;
       default:
         return c.json({ error: "unknown action", actions: ["lend", "withdraw-lend", "claim", "deposit-collateral", "withdraw-collateral", "borrow", "repay", "set-operator", "short", "cover"] }, 404);
     }
+    // simulate=1: dry-run every transaction through the Binance Transaction API before it is handed to a wallet.
+    // A multi-step list (approve, then act) is simulated step by step; later steps may report an allowance
+    // failure until the earlier ones are mined, which the response says plainly.
+    if (q.simulate === "1" && account && isAddress(account)) {
+      const simulations = [];
+      for (const t of txs) simulations.push(await simulateTx(account, t));
+      return c.json({ txs, simulations });
+    }
+    return c.json({ txs });
   } catch (e) {
     return c.json({ error: (e as Error).message }, 400);
   }
@@ -165,6 +186,9 @@ app.get("/account/:address", async (c) => {
 });
 
 const port = Number(process.env.API_PORT ?? 4310);
-serve({ fetch: app.fetch, port }, () => console.log(`stockroom api on :${port}`));
+// API_NO_LISTEN=1 lets tests import the app and call app.request() without binding the port.
+if (process.env.API_NO_LISTEN !== "1") {
+  serve({ fetch: app.fetch, port }, () => console.log(`stockroom api on :${port}`));
+}
 
 export default app;

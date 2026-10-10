@@ -36,5 +36,16 @@ module.exports = {
       args: "start --hostname 127.0.0.1 --port 3020",
       env: { NODE_ENV: "production" },
     },
+    {
+      // BNB Agent Studio seller (A2A, ERC-8183): sells borrow desk briefs. Caddy maps /agent/* to this port.
+      // Secrets (WALLET_PASSWORD, OPENROUTER_API_KEY) come from agents/stockroomdesk/.studio/.env.local, which bag loads.
+      name: "stockroom-agent",
+      cwd: `${root}/agents/stockroomdesk/app/agent`,
+      script: "/usr/local/bin/bag",
+      args: "dev --port 9010",
+      env: { STOCKROOM_API: "http://127.0.0.1:4310", AGENTCORE_RUNTIME_URL: "https://stockroom.adilhusain.xyz/agent/", AGENT_HOST: "stockroom.adilhusain.xyz" },
+      max_memory_restart: "600M",
+      restart_delay: 5000,
+    },
   ],
 };

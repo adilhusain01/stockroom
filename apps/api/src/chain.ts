@@ -146,7 +146,7 @@ export interface AccountView {
   unpaidFees: string;
   healthFactor: string | null; // null when there is no debt
   auctionStartedAt: number;
-  positions: { ticker: string; token: Address; debtRaw: string; priceUsd: string; valueUsd: string }[];
+  positions: { ticker: string; token: Address; debtRaw: string; priceUsd: string; valueUsd: string; liquidationPriceUsd: string | null }[];
   lending: { ticker: string; lendingPool: Address; shares: string; assets: string; effectiveShares: string; claimableUsdt: string }[];
 }
 
@@ -160,14 +160,18 @@ export async function accountView(address: Address): Promise<AccountView> {
     client.readContract({ address: deployment.controller, abi: ControllerAbi, functionName: "borrowedTokens", args: [address] }),
   ]);
   const positions = [];
+  const netCollateral = collateral > pendingFees ? collateral - pendingFees : 0n;
   for (const token of borrowed) {
     const m = markets.find((x) => x.token.toLowerCase() === token.toLowerCase());
-    const [debt, quote] = await Promise.all([
+    const [debt, quote, market] = await Promise.all([
       client.readContract({ address: deployment.controller, abi: ControllerAbi, functionName: "positionOf", args: [address, token] }),
       client.readContract({ address: deployment.oracle, abi: OracleRouterAbi, functionName: "quote", args: [token] }).catch(() => null),
+      client.readContract({ address: deployment.controller, abi: ControllerAbi, functionName: "market", args: [token] }),
     ]);
     const price = quote?.priceWad ?? 0n;
-    positions.push({ ticker: m?.ticker ?? token, token, debtRaw: f18(debt), priceUsd: f18(price), valueUsd: f18((debt * price) / WAD) });
+    // the price at which this position alone would push health to 1: collateral / (debt x liquidation threshold)
+    const liq = debt > 0n && borrowed.length === 1 ? (netCollateral * WAD * WAD) / (debt * market.params.liqThresholdWad) : null;
+    positions.push({ ticker: m?.ticker ?? token, token, debtRaw: f18(debt), priceUsd: f18(price), valueUsd: f18((debt * price) / WAD), liquidationPriceUsd: liq === null ? null : f18(liq) });
   }
   const lending = [];
   for (const m of markets) {

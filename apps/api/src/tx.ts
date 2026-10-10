@@ -1,6 +1,7 @@
 import { encodeFunctionData, encodePacked, parseUnits, type Address, type Hex } from "viem";
 import { bep677Abi, ControllerAbi, LendingPoolAbi, OracleRouterAbi, ShortRouterAbi } from "@stockroom/sdk";
 import { client, deployment, markets } from "./chain.ts";
+import { aggregatorQuote } from "./binance.ts";
 
 /**
  * Calldata builders for wallets that only know how to send a prepared transaction (the Binance Agentic Wallet's
@@ -139,35 +140,44 @@ export function setOperatorTx(): PreparedTx {
   };
 }
 
-/** Short: borrow and sell on PancakeSwap in one transaction. `slippageBps` guards the proceeds. */
+/**
+ * Short: borrow and sell on PancakeSwap in one transaction. The minimum proceeds come from a live Binance
+ * aggregator quote for the same sale when the API key is set (so the guard reflects real depth), else from
+ * the oracle price; `slippageBps` is applied on top.
+ */
 export async function shortTx(ticker: string, amount: string, slippageBps = 100): Promise<PreparedTx> {
   const m = marketByTicker(ticker);
   const raw = parseUnits(amount, 18);
-  const price = await referencePrice(m.token);
-  const minOut = (raw * price * BigInt(10_000 - slippageBps)) / (WAD * 10_000n);
+  const quote = await aggregatorQuote(m.token, deployment.usdt, raw);
+  const expected = quote ? quote.amountOut : (raw * (await referencePrice(m.token))) / WAD;
+  const minOut = (expected * BigInt(10_000 - slippageBps)) / 10_000n;
   const path = encodePacked(["address", "uint24", "address"], [m.token, poolFee(m.ticker), deployment.usdt]);
+  const source = quote ? `Binance quote via ${quote.vendor}, impact ${Number(quote.priceImpactPercent).toFixed(2)}%` : "oracle price";
   return {
     to: deployment.shortRouter,
     data: encodeFunctionData({ abi: ShortRouterAbi, functionName: "short", args: [m.token, raw, path, minOut] }),
     value: "0",
     chainId: 56,
-    description: `Short ${amount} ${m.ticker}: borrow, sell for at least ${(Number(minOut) / 1e18).toFixed(2)} USDT, proceeds become margin`,
+    description: `Short ${amount} ${m.ticker}: borrow, sell for at least ${(Number(minOut) / 1e18).toFixed(2)} USDT (${source}), proceeds become margin`,
   };
 }
 
-/** Cover: buy back on PancakeSwap and repay in one transaction. `slippageBps` caps the USDT spent. */
+/** Cover: buy back on PancakeSwap and repay in one transaction. The USDT cap comes from a live Binance quote when available. */
 export async function coverTx(ticker: string, amount: string, slippageBps = 100): Promise<PreparedTx> {
   const m = marketByTicker(ticker);
   const raw = parseUnits(amount, 18);
   const price = await referencePrice(m.token);
-  const maxIn = (raw * price * BigInt(10_000 + slippageBps)) / (WAD * 10_000n);
+  const probe = await aggregatorQuote(deployment.usdt, m.token, (raw * price) / WAD); // what that much USDT buys today
+  const expectedIn = probe && probe.amountOut > 0n ? ((raw * price) / WAD) * raw / probe.amountOut : (raw * price) / WAD;
+  const maxIn = (expectedIn * BigInt(10_000 + slippageBps)) / 10_000n;
   const path = encodePacked(["address", "uint24", "address"], [m.token, poolFee(m.ticker), deployment.usdt]);
+  const source = probe ? `Binance quote via ${probe.vendor}` : "oracle price";
   return {
     to: deployment.shortRouter,
     data: encodeFunctionData({ abi: ShortRouterAbi, functionName: "cover", args: [m.token, raw, path, maxIn] }),
     value: "0",
     chainId: 56,
-    description: `Cover ${amount} ${m.ticker}: buy back for at most ${(Number(maxIn) / 1e18).toFixed(2)} USDT of collateral and repay`,
+    description: `Cover ${amount} ${m.ticker}: buy back for at most ${(Number(maxIn) / 1e18).toFixed(2)} USDT of collateral (${source}) and repay`,
   };
 }
 

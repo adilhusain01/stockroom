@@ -64,6 +64,10 @@ Two transactions: approve, then deposit. The user receives `sNVDAB` shares. Say 
 
 Cover with `/tx/cover?ticker=TSLAB&amount=1&slippageBps=100` (buy back and repay) or repay delivered tokens with `/tx/repay?ticker=TSLAB&amount=all&account=<wallet>`, then `/tx/withdraw-collateral?amount=...&account=<wallet>`.
 
+## Helper script
+
+`scripts/stockroom.sh` (next to this file) wraps the calls above: `rates`, `market NVDAB`, `session`, `account 0x...`, `preview <action> key=value...` (fetches the prepared steps with the Binance dry-run, then runs `baw contract-call preview` for each and prints the request ids) and `execute <requestId>`. It never executes on its own; show the user each preview and get a yes first.
+
 ## Rules
 
 - Confirm before every `execute`. Show the description and the preview's balance changes in the user's units (amounts in the preview are in the smallest unit; divide by `decimals`).

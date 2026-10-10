@@ -48,7 +48,7 @@ export interface Account {
   unpaidFees: string;
   healthFactor: string | null;
   auctionStartedAt: number;
-  positions: { ticker: string; token: `0x${string}`; debtRaw: string; priceUsd: string; valueUsd: string }[];
+  positions: { ticker: string; token: `0x${string}`; debtRaw: string; priceUsd: string; valueUsd: string; liquidationPriceUsd: string | null }[];
   lending: { ticker: string; lendingPool: `0x${string}`; shares: string; assets: string; effectiveShares: string; claimableUsdt: string }[];
 }
 
@@ -91,7 +91,22 @@ export const api = {
       .join("&");
     return get<{ txs: PreparedTx[] }>(`/tx/${action}${q ? `?${q}` : ""}`).then((r) => r.txs);
   },
+  /** Same, with every step dry-run through the Binance Transaction API first. */
+  txWithSimulation: (action: string, params: Record<string, string | number | undefined>) => {
+    const q = Object.entries({ ...params, simulate: "1" })
+      .filter(([, v]) => v !== undefined && v !== "")
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+      .join("&");
+    return get<{ txs: PreparedTx[]; simulations?: Simulation[] }>(`/tx/${action}?${q}`);
+  },
 };
+
+export interface Simulation {
+  status: string;
+  failReason: string | null;
+  balanceChanges?: { contractAddress: string; change: string; owner: string }[];
+  allowanceChanges?: { tokenAddress: string; owner: string; spender: string; preAmount: string; postAmount: string }[];
+}
 
 export function fmt(n: string | number | null | undefined, digits = 2): string {
   if (n === null || n === undefined || n === "") return "–";

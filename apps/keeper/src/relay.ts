@@ -64,7 +64,10 @@ export async function relayOnce(opts: { dryRun?: boolean; minIntervalSec?: numbe
     }
     const cur = await currentRelay(t.relay);
     const changed = cur.answer !== next.answer || cur.updatedAt !== next.updatedAt;
-    const dueForHeartbeat = now - cur.updatedAt >= 1800n; // re-stamp every 30 minutes even if unchanged
+    // APRO prints at least hourly, so by default only a new source round costs gas. RELAY_RESTAMP_SEC > 0
+    // adds a periodic re-stamp for feeds whose source goes quiet.
+    const restamp = BigInt(process.env.RELAY_RESTAMP_SEC ?? 0);
+    const dueForHeartbeat = restamp > 0n && now - cur.updatedAt >= restamp;
     if (!changed && !dueForHeartbeat) continue;
     if (next.updatedAt < cur.updatedAt) continue; // never move a feed backwards
     const updatedAt = next.updatedAt > now ? now : next.updatedAt;

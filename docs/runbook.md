@@ -5,9 +5,9 @@ Everything below runs from the repo root on the VPS. Secrets live in `.env` only
 ## 1. Before deploying
 
 - `.env` has `DEPLOYER_PRIVATE_KEY`, `DEPLOYER_ADDRESS`, `KEEPER_PRIVATE_KEY`, `KEEPER_ADDRESS` (the same burner for both is fine), `BSC_RPC_URL`, and when available `BINANCE_WEB3_API_KEY`, `BINANCE_WEB3_API_SECRET`, `BSCSCAN_API_KEY`.
-- The deployer holds at least 0.05 BNB. The deploy simulation used 74.7M gas, about 0.004 BNB at 0.05 gwei.
+- The deployer holds at least 0.03 BNB. The full 15-market deploy simulated at 74.7M gas, about 0.004 BNB at 0.05 gwei; the lean plan deploys five.
 - `cd contracts && forge test` passes, and `forge test --match-path "test/fork/*" --no-match-path zzz` passes against the live chain.
-- `contracts/script/config/bsc-markets.json` lists the markets. To deploy a subset first, set `DEPLOY_MARKET_COUNT=3` (NVDAB, TSLAB, QQQB).
+- `contracts/script/config/bsc-markets.json` lists the markets in priority order. The lean plan is `DEPLOY_MARKET_COUNT=5` (NVDAB, TSLAB, QQQB, SPCXB, CRCLB, all with APRO feeds); the other ten deploy later with the same command and a higher count once the first five are listed (re-running redeploys everything, so decide the count before broadcasting).
 
 ## 2. Deploy
 
@@ -38,7 +38,7 @@ Markets without an APRO feed (GOOGLB, AAPLB, MSTRB, SPYB, HOODB, AMZNB) stay unp
 
 ## 4. First live transactions
 
-`scripts/seed-mainnet.sh` lends 0.2 NVDAB, deposits 60 USDT, allows the short router, shorts 0.05 NVDAB and covers it. Every step prints its hash; record them in the submission.
+`scripts/seed-mainnet.sh` lends 0.2 NVDAB, deposits 60 USDT, allows the short router, shorts 0.05 NVDAB and covers it. Lean budget: 0.03 BNB, 100 USDT and 0.3 NVDAB in the burner; about $12 is spent over the hackathon, the rest comes back. Every step prints its hash; record them in the submission.
 
 ## 5. Services
 

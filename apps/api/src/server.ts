@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { isAddress, type Address } from "viem";
-import { accountView, deployment, markets, marketViews, type MarketView } from "./chain.ts";
+import { accountView, deployment, markets, marketViews, sessionView, type MarketView } from "./chain.ts";
 import * as tx from "./tx.ts";
 import * as b402 from "./b402.ts";
 
@@ -26,6 +26,15 @@ async function cachedMarkets(): Promise<MarketView[]> {
 app.get("/health", (c) => c.json({ ok: true, chainId: deployment.chainId, controller: deployment.controller, markets: markets.length }));
 
 app.get("/deployment", (c) => c.json(deployment));
+
+/** Reference session state from the on-chain calendar plus the current gap premium. */
+app.get("/session", async (c) => {
+  try {
+    return c.json(await sessionView());
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500);
+  }
+});
 
 app.get("/markets", async (c) => {
   try {

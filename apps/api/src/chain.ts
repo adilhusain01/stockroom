@@ -6,6 +6,7 @@ import {
   bep677Abi,
   ControllerAbi,
   LendingPoolAbi,
+  MarketCalendarAbi,
   OracleRouterAbi,
   RelayFeedAbi,
   RiskMathRefAbi,
@@ -113,6 +114,29 @@ export async function marketViews(): Promise<MarketView[]> {
     });
   }
   return out;
+}
+
+export interface SessionView {
+  now: number;
+  isOpen: boolean;
+  nextOpen: number;
+  closedForSec: number;
+  gapPremium: string; // 0..0.05
+  openSeconds: number;
+  closeSeconds: number;
+}
+
+export async function sessionView(): Promise<SessionView> {
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const [isOpen, nextOpen, closedFor, gap, openSeconds, closeSeconds] = await Promise.all([
+    client.readContract({ address: deployment.calendar, abi: MarketCalendarAbi, functionName: "isOpen", args: [now] }),
+    client.readContract({ address: deployment.calendar, abi: MarketCalendarAbi, functionName: "nextOpen", args: [now] }),
+    client.readContract({ address: deployment.calendar, abi: MarketCalendarAbi, functionName: "closedFor", args: [now] }),
+    client.readContract({ address: deployment.oracle, abi: OracleRouterAbi, functionName: "gapPremium", args: [now] }),
+    client.readContract({ address: deployment.calendar, abi: MarketCalendarAbi, functionName: "openSeconds" }),
+    client.readContract({ address: deployment.calendar, abi: MarketCalendarAbi, functionName: "closeSeconds" }),
+  ]);
+  return { now: Number(now), isOpen, nextOpen: Number(nextOpen), closedForSec: Number(closedFor), gapPremium: f18(gap), openSeconds: Number(openSeconds), closeSeconds: Number(closeSeconds) };
 }
 
 export interface AccountView {

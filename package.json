@@ -11,5 +11,8 @@
     "api": "pnpm --filter @stockroom/api start",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "pm2": "^7.0.4"
   }
 }

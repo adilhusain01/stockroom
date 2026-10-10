@@ -43,8 +43,8 @@ Markets without an APRO feed (GOOGLB, AAPLB, MSTRB, SPYB, HOODB, AMZNB) stay unp
 ## 5. Services
 
 ```bash
-pm2 start ecosystem.config.cjs && pm2 save     # keeper, desk, api, web
-pm2 logs stockroom-keeper --lines 50
+pnpm exec pm2 start ecosystem.config.cjs && pnpm exec pm2 save     # keeper, desk, api, web
+pnpm exec pm2 logs stockroom-keeper --lines 50
 ```
 
 Caddy block for `/etc/caddy/Caddyfile` (DNS: A record `stockroom.adilhusain.xyz` to the VPS IP first), then `systemctl reload caddy`:

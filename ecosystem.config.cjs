@@ -1,4 +1,4 @@
-// pm2 processes for the VPS. Start with: pm2 start ecosystem.config.cjs && pm2 save
+// pm2 processes for the VPS. Start with: pnpm exec pm2 start ecosystem.config.cjs && pnpm exec pm2 save
 // The API listens on 127.0.0.1:4310 and the web app on 127.0.0.1:3020; Caddy fronts both (docs/runbook.md).
 const root = __dirname;
 

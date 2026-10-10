@@ -32,8 +32,8 @@ bash "$ROOT/scripts/seed-mainnet.sh"
 
 echo "== 5. services"
 cd "$ROOT"
-pm2 start ecosystem.config.cjs 2>&1 | tail -8
-pm2 save >/dev/null
+pnpm exec pm2 start ecosystem.config.cjs 2>&1 | tail -8
+pnpm exec pm2 save >/dev/null
 sleep 5
 curl -sS http://127.0.0.1:4310/rates.json | head -c 400; echo
 echo "live. add the Caddy block from docs/runbook.md once DNS points here."

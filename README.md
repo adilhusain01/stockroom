@@ -74,3 +74,7 @@ pnpm keeper nightdesk run       # the Friday-to-Monday loop
 ## Status
 
 Contracts, keeper, API, SDK, skill, Night Desk and web app are built; unit, fork and TypeScript tests pass. Not yet done: the mainnet deployment (waiting on a funded deployer), live keeper runs with the Binance API key, the APRO allowlist request, a recorded demo, and the Developer Experience Report.
+
+## Money safety
+
+Deposits are held per account inside the contracts; only the depositor can withdraw, redeem or claim, and no owner function can move user funds (the owner can only withdraw the insurance fund, which holds fees). Borrowers post 150 percent collateral, liquidations repay lenders, and the borrow caps at launch equal the seed sizes. `scripts/transfer-ownership.sh` hands the owner role to a hardware wallet after setup; `scripts/recover.sh` unwinds every position and sends everything back to a chosen address in one run. The contracts are unaudited; keep sizes small.

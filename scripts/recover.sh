@@ -8,7 +8,8 @@ set -a; . "$ROOT/.env"; set +a
 export ETH_RPC_URL="${BSC_RPC_URL:-https://bsc-rpc.publicnode.com}"
 DEP="$ROOT/contracts/deployments/56.json"
 KEY="$DEPLOYER_PRIVATE_KEY"; ME="$DEPLOYER_ADDRESS"
-TO="${RECOVER_TO:?set RECOVER_TO to the wallet that should receive the funds}"
+TO="${RECOVER_TO:-0xc31b6c70df4bd9716e9a5f419e4c308a8372eb32}"  # Adil's Binance deposit address (BSC), set 2026-10-10
+SWAP_STOCKS="${SWAP_STOCKS_TO_USDT:-1}"  # exchanges may not accept bStock deposits, so sell them to USDT first
 j() { python3 -c "import json;d=json.load(open('$DEP'));print($1)"; }
 CTL=$(j "d['controller']"); SR=$(j "d['shortRouter']"); USDT=$(j "d['usdt']")
 N=$(j "len(d['tickers'])")
@@ -63,9 +64,19 @@ OWNER=$(cast call "$CTL" "owner()(address)")
 if [ "$INS" != "0" ] && [ "${OWNER,,}" = "${ME,,}" ]; then send "$CTL" "withdrawInsurance(address,uint256)" "$ME" "$INS"; else echo "   nothing to do"; fi
 
 echo "== 6. send everything to $TO"
+ROUTER=$(j "d['swapRouter']")
 for i in $(seq 0 $((N-1))); do
   TOKEN=$(j "d['tokens'][$i]"); B=$(bal "$TOKEN" "$ME")
-  [ "$B" != "0" ] && { echo "   $(j "d['tickers'][$i]") $B"; send "$TOKEN" "transfer(address,uint256)(bool)" "$TO" "$B"; }
+  [ "$B" = "0" ] && continue
+  if [ "$SWAP_STOCKS" = "1" ]; then
+    FEE=$(python3 -c "import json;f=json.load(open('$ROOT/contracts/script/config/bsc-markets.json'))['poolFees'];print(f[$i])")
+    DL=$(( $(date +%s) + 600 ))
+    echo "   sell $B raw $(j "d['tickers'][$i]") for USDT"
+    send "$TOKEN" "approve(address,uint256)(bool)" "$ROUTER" "$B"
+    send "$ROUTER" "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))(uint256)" "($TOKEN,$USDT,$FEE,$ME,$DL,$B,1,0)"
+  else
+    echo "   $(j "d['tickers'][$i]") $B"; send "$TOKEN" "transfer(address,uint256)(bool)" "$TO" "$B"
+  fi
 done
 U=$(bal "$USDT" "$ME"); [ "$U" != "0" ] && { echo "   USDT $U"; send "$USDT" "transfer(address,uint256)(bool)" "$TO" "$U"; }
 BNB=$(cast balance "$ME"); KEEP=2000000000000000 # leave 0.002 BNB for any rerun

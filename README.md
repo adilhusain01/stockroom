@@ -54,6 +54,23 @@ pnpm api                     # http://localhost:4310/markets, /rates.json, /acco
 - Venus lists NVDAB, TSLAB, SPCXB and SKHYB as collateral with borrow caps of zero. Nobody can borrow the stock itself anywhere on BSC.
 - The PancakeSwap v3 `SwapRouter` (`0x1b81D678…`) takes the Uniswap v3 periphery structs with a `deadline`; the fork tests short and cover through it.
 
+Web app (Next.js 16, shadcn, wagmi; reads the API, sends prepared calldata through any injected wallet):
+
+```bash
+cd apps/web && cp .env.example .env.local   # NEXT_PUBLIC_STOCKROOM_API=http://localhost:4310
+pnpm --filter @stockroom/web dev            # http://localhost:3000
+```
+
+Agentic Wallet skill: point an agent at `skills/stockroom/SKILL.md` (install with `npx skills add <this repo>/skills/stockroom` once published). It needs `baw` 1.10.0, a signed-in Agentic Wallet with Developer Mode on, and the API URL in `STOCKROOM_API`.
+
+Night Desk (the weekend market-making agent, run by the keeper wallet):
+
+```bash
+pnpm keeper nightdesk plan      # what it would do now
+pnpm keeper nightdesk register  # ERC-8004 identity on BSC, once
+pnpm keeper nightdesk run       # the Friday-to-Monday loop
+```
+
 ## Status
 
-Contracts, keeper, API and SDK are built and tested. Mainnet deployment, the Agentic Wallet skill, the Night Desk agent and the web app are in progress.
+Contracts, keeper, API, SDK, skill, Night Desk and web app are built; unit, fork and TypeScript tests pass. Not yet done: the mainnet deployment (waiting on a funded deployer), live keeper runs with the Binance API key, the APRO allowlist request, a recorded demo, and the Developer Experience Report.

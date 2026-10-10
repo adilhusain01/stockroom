@@ -14,21 +14,26 @@ export function WalletButton() {
   if (!isConnected || !address) {
     const connector = connectors[0];
     return (
-      <Button onClick={() => connector && connect({ connector })} disabled={!connector || isPending}>
+      <Button size="sm" className="rounded-full px-4" onClick={() => connector && connect({ connector })} disabled={!connector || isPending}>
         {isPending ? "Connecting" : "Connect wallet"}
       </Button>
     );
   }
   if (chainId !== bsc.id) {
     return (
-      <Button variant="destructive" onClick={() => switchChain({ chainId: bsc.id })}>
+      <Button size="sm" variant="destructive" className="rounded-full px-4" onClick={() => switchChain({ chainId: bsc.id })}>
         Switch to BNB Chain
       </Button>
     );
   }
   return (
-    <Button variant="outline" onClick={() => disconnect()} title="Disconnect">
-      {shortAddress(address)}
-    </Button>
+    <span className="flex items-center rounded-full shadow-[inset_0_0_0_1.5px_var(--line)]">
+      <span className="py-1.5 pr-2 pl-3.5 font-mono text-[0.78rem] text-ink-soft" title={address}>
+        {shortAddress(address)}
+      </span>
+      <button type="button" onClick={() => disconnect()} className="cursor-pointer rounded-full py-1.5 pr-3.5 pl-2 text-[0.8rem] font-bold text-ink-soft transition-colors duration-150 hover:text-ink">
+        Disconnect
+      </button>
+    </span>
   );
 }

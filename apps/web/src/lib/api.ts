@@ -108,6 +108,54 @@ export interface Simulation {
   allowanceChanges?: { tokenAddress: string; owner: string; spender: string; preAmount: string; postAmount: string }[];
 }
 
+/** The company behind each bStock ticker, for the list rows. Unknown tickers show the ticker without its B. */
+const COMPANY: Record<string, string> = {
+  NVDAB: "NVIDIA",
+  TSLAB: "Tesla",
+  QQQB: "Invesco QQQ Trust",
+  SPYB: "SPDR S&P 500",
+  SPCXB: "SpaceX",
+  CRCLB: "Circle",
+  AAPLB: "Apple",
+  MSFTB: "Microsoft",
+  AMZNB: "Amazon",
+  GOOGLB: "Alphabet",
+  METAB: "Meta",
+  COINB: "Coinbase",
+  HOODB: "Robinhood",
+  MSTRB: "Strategy",
+  SKHYB: "SK hynix",
+  PLTRB: "Palantir",
+  AMDB: "AMD",
+  INTCB: "Intel",
+  NFLXB: "Netflix",
+  MCDB: "McDonald's",
+};
+
+export function companyName(ticker: string): string {
+  return COMPANY[ticker] ?? ticker.replace(/B$/, "");
+}
+
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usdFine = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+export function money(value: string | number | null | undefined, fine = false): string {
+  if (value === null || value === undefined || value === "") return "–";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "–";
+  const shown = (fine ? usdFine : usd).format(n);
+  return /^-\$0\.0+$/.test(shown) ? shown.slice(1) : shown;
+}
+
+/** Signed money: +$1.20 / -$0.35 */
+export function signedMoney(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return "–";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "–";
+  const text = money(Math.abs(n), Math.abs(n) > 0 && Math.abs(n) < 0.01);
+  return n > 0 ? `+${text}` : n < 0 ? `-${text}` : text;
+}
+
 export function fmt(n: string | number | null | undefined, digits = 2): string {
   if (n === null || n === undefined || n === "") return "–";
   const x = typeof n === "number" ? n : Number(n);
@@ -130,4 +178,18 @@ export function duration(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+/** "Mon, 9:30 AM" in the viewer's clock for a unix timestamp in seconds. */
+export function whenShort(unixSeconds: number): string {
+  return new Date(unixSeconds * 1000).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+}
+
+/** Where the US cash market is: a short word for the header and the session card. */
+export function sessionWord(s: Session): string {
+  if (s.isOpen) return "Open";
+  const day = new Date(s.now * 1000).getUTCDay();
+  if (s.closedForSec > 20 * 3600 && (day === 0 || day === 6)) return "Weekend";
+  if (s.closedForSec > 20 * 3600) return "Holiday";
+  return "Closed";
 }

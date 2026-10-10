@@ -16,7 +16,7 @@ Stock lending for bStocks on BNB Chain. Holders lend tokenized stocks they alrea
 | `packages/sdk/` | ABIs, BSC addresses, the deployment loader and a signed client for the Binance Web3 Wallet API. |
 | `apps/keeper/` | Relays APRO prices into the feeds, pushes reference anchors, runs the flash liquidator. |
 | `apps/api/` | Read API: markets, rates feed (`/rates.json`), accounts, prepared calldata (`/tx/:action`, with a Binance Transaction API dry-run on `?simulate=1`), the paid feed over B402. |
-| `apps/web/` | Next.js app: markets, lend and borrow panels, account health, rates, the desk, a plain-language explainer. |
+| `apps/web/` | Next.js app: a landing page at `/` (the idea in one chart, a worked example, how it works, safeguards) and the desk under `/app` (markets, one page per stock with lend and short, account health, Night Desk, rates). |
 | `skills/stockroom/` | Binance Agentic Wallet skill and helper script: lend, borrow, short and cover in plain language. |
 | `agents/stockroomdesk/` | BNB Agent Studio seller: sells borrow desk briefs over A2A, MCP and x402 (ERC-8183), with read-only Stockroom tools. |
 | `scripts/` | ABI export, fork checks, mainnet go-live, funding, recovery and ownership transfer. |

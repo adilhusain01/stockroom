@@ -2,40 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
-/*
-  Stockroom tokens. One accent (BNB Chain's yellow) carries the live session strip and nothing else; everything
-  else is ink on paper. Radii are concentric: --radius is the outer card radius, controls derive from it.
-*/
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-sans);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-mono-stack);
+  --font-heading: var(--font-display);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
-  --color-accent-strong: var(--accent-strong);
-  --color-accent-strong-foreground: var(--accent-strong-foreground);
-  --color-positive: var(--positive);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -46,100 +24,125 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.5);
-  --radius-md: calc(var(--radius) * 0.667);
-  --radius-lg: calc(var(--radius) * 0.833);
-  --radius-xl: var(--radius);
-  --radius-2xl: calc(var(--radius) * 1.333);
-  --radius-3xl: calc(var(--radius) * 1.667);
-  --radius-4xl: calc(var(--radius) * 2);
+  /* Stockroom's own names: bg-paper-2, text-ink-soft, border-line, text-signal and so on. */
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-signal: var(--signal);
+  --color-signal-deep: var(--signal-deep);
+  --color-signal-wash: var(--signal-wash);
+  --color-positive: var(--positive);
+  --color-danger: var(--danger);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --shadow-card: 0 16px 40px -26px rgba(22, 27, 30, 0.45);
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-draw: draw 1.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-rise: rise 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
+/*
+  Stockroom tokens: cool concrete paper, blue-black ink, one accent (signal orange, the colour of a stockroom
+  label) for the thing to look at, a quiet green for yield and an oxblood for danger. Type: Bricolage Grotesque
+  for display, Instrument Sans for the interface, JetBrains Mono for figures.
+*/
 :root {
-  --background: oklch(0.975 0.004 120);
-  --foreground: oklch(0.2 0.015 160);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.015 160);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.015 160);
-  --primary: oklch(0.24 0.02 160);
-  --primary-foreground: oklch(0.985 0.004 120);
-  --secondary: oklch(0.94 0.006 120);
-  --secondary-foreground: oklch(0.24 0.02 160);
-  --muted: oklch(0.94 0.006 120);
-  --muted-foreground: oklch(0.48 0.012 160);
-  --accent: oklch(0.94 0.006 120);
-  --accent-foreground: oklch(0.24 0.02 160);
-  --accent-strong: oklch(0.84 0.17 88);
-  --accent-strong-foreground: oklch(0.2 0.03 80);
-  --positive: oklch(0.5 0.12 155);
-  --destructive: oklch(0.52 0.19 30);
-  --border: oklch(0.88 0.008 120);
-  --input: oklch(0.88 0.008 120);
-  --ring: oklch(0.6 0.02 160);
-  --chart-1: oklch(0.84 0.17 88);
-  --chart-2: oklch(0.5 0.12 155);
-  --chart-3: oklch(0.48 0.012 160);
-  --chart-4: oklch(0.36 0.02 160);
-  --chart-5: oklch(0.24 0.02 160);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.975 0.004 120);
-  --sidebar-foreground: oklch(0.2 0.015 160);
-  --sidebar-primary: oklch(0.24 0.02 160);
-  --sidebar-primary-foreground: oklch(0.985 0.004 120);
-  --sidebar-accent: oklch(0.94 0.006 120);
-  --sidebar-accent-foreground: oklch(0.24 0.02 160);
-  --sidebar-border: oklch(0.88 0.008 120);
-  --sidebar-ring: oklch(0.6 0.02 160);
-}
+  --paper: #eef0ec;
+  --paper-2: #e5e8e3;
+  --paper-3: #d9ddd6;
+  --ink: #161b1e;
+  --ink-soft: #444c51;
+  --ink-faint: #7f898f;
+  --line: #c7cdc6;
+  --line-soft: #d8ddd6;
+  --signal: #d4541c;
+  --signal-deep: #a63f0f;
+  --signal-wash: #f3dccd;
+  --positive: #2f7a4f;
+  --danger: #b2362b;
 
-.dark {
-  --background: oklch(0.17 0.012 160);
-  --foreground: oklch(0.93 0.006 120);
-  --card: oklch(0.21 0.012 160);
-  --card-foreground: oklch(0.93 0.006 120);
-  --popover: oklch(0.21 0.012 160);
-  --popover-foreground: oklch(0.93 0.006 120);
-  --primary: oklch(0.93 0.006 120);
-  --primary-foreground: oklch(0.2 0.015 160);
-  --secondary: oklch(0.27 0.012 160);
-  --secondary-foreground: oklch(0.93 0.006 120);
-  --muted: oklch(0.27 0.012 160);
-  --muted-foreground: oklch(0.68 0.01 140);
-  --accent: oklch(0.27 0.012 160);
-  --accent-foreground: oklch(0.93 0.006 120);
-  --accent-strong: oklch(0.82 0.165 88);
-  --accent-strong-foreground: oklch(0.2 0.03 80);
-  --positive: oklch(0.72 0.14 155);
-  --destructive: oklch(0.68 0.17 30);
-  --border: oklch(0.32 0.012 160);
-  --input: oklch(0.32 0.012 160);
-  --ring: oklch(0.55 0.02 160);
-  --chart-1: oklch(0.82 0.165 88);
-  --chart-2: oklch(0.72 0.14 155);
-  --chart-3: oklch(0.68 0.01 140);
-  --chart-4: oklch(0.5 0.012 160);
-  --chart-5: oklch(0.93 0.006 120);
-  --sidebar: oklch(0.21 0.012 160);
-  --sidebar-foreground: oklch(0.93 0.006 120);
-  --sidebar-primary: oklch(0.93 0.006 120);
-  --sidebar-primary-foreground: oklch(0.2 0.015 160);
-  --sidebar-accent: oklch(0.27 0.012 160);
-  --sidebar-accent-foreground: oklch(0.93 0.006 120);
-  --sidebar-border: oklch(0.32 0.012 160);
-  --sidebar-ring: oklch(0.55 0.02 160);
+  --font-display: var(--font-bricolage), "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-ui: var(--font-instrument), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono-stack: var(--font-jetbrains), "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* shadcn's names, pointed at the Stockroom palette */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-2);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-2);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-3);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-3);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--paper-3);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
+  --radius: 10px;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   html {
-    color-scheme: light dark;
+    @apply font-sans;
+    color-scheme: light;
   }
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "tnum" 1, "cv11" 1;
+    background-color: var(--paper);
+    /* Concrete, not cream: a faint grain, a cool light from the top, darker toward the bottom edge. */
+    background-image:
+      radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
+      radial-gradient(140% 120% at 50% 120%, rgba(60, 72, 80, 0.12), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+    color: var(--ink);
+    font-size: 1rem;
+    font-feature-settings: "tnum" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgba(212, 84, 28, 0.22);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  a {
+    text-underline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
     *,

@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { isAddress, type Address } from "viem";
 import { accountView, deployment, markets, marketViews, type MarketView } from "./chain.ts";
 import * as tx from "./tx.ts";
+import * as b402 from "./b402.ts";
 
 /**
  * Stockroom read API. Everything here is derived from chain state; the frontend and the agents read it, and
@@ -103,6 +104,46 @@ app.get("/tx/:action", async (c) => {
     return c.json({ error: (e as Error).message }, 400);
   }
 });
+
+/** Paid rate feed for agents: x402 over Binance's B402 facilitator, 0.01 USDT per call. */
+app.get("/paid/rates", async (c) => {
+  const url = new URL(c.req.url).toString();
+  if (!b402.b402Enabled()) {
+    return c.json({ error: "paid feed not configured on this server; use /rates.json" }, 503);
+  }
+  const header = c.req.header("X-PAYMENT") ?? c.req.header("PAYMENT-SIGNATURE") ?? c.req.header("payment-signature");
+  const payload = b402.decodePaymentHeader(header);
+  if (!payload) {
+    const { requirements, resource } = await b402.requirementsFor(url);
+    const body = { x402Version: 2, error: "payment required", resource, accepts: requirements };
+    c.header("PAYMENT-REQUIRED", Buffer.from(JSON.stringify(body)).toString("base64"));
+    return c.json(body, 402);
+  }
+  const result = await b402.verifyAndSettle(payload, url);
+  if (!result.ok) return c.json({ x402Version: 2, error: result.error }, 402);
+  const all = await cachedMarkets();
+  c.header("PAYMENT-RESPONSE", Buffer.from(JSON.stringify({ success: true, transaction: result.transaction, network: "eip155:56", payer: result.payer })).toString("base64"));
+  return c.json({ paidBy: result.payer, transaction: result.transaction, updatedAt: new Date().toISOString(), rates: all.map((m) => ({ ticker: m.ticker, borrowApr: Number(m.borrowRateApr), supplyApr: Number(m.supplyRateApr), utilisation: Number(m.utilisation), regime: m.regime, priceUsd: Number(m.price), twapUsd: m.twapPrice ? Number(m.twapPrice) : null, anchorUsd: m.anchorPrice ? Number(m.anchorPrice) : null, idle: Number(m.idle), borrowCap: Number(m.borrowCapRaw) })) });
+});
+
+/** ERC-8004 agent card for the Night Desk agent. */
+app.get("/agent-card.json", (c) =>
+  c.json({
+    name: "Stockroom Night Desk",
+    description: "Borrows bStocks on Stockroom every Friday after the US close, provides PancakeSwap v3 liquidity while Wall Street is shut, unwinds before the Monday open and repays. Pays the borrow fee that becomes lenders' yield. Publishes the live equity borrow rate on BNB Chain.",
+    url: process.env.PUBLIC_API_URL ?? "https://stockroom.adilhusain.xyz/api",
+    version: "0.1.0",
+    chain: "eip155:56",
+    operator: deployment.keeper,
+    contracts: { controller: deployment.controller, oracle: deployment.oracle, shortRouter: deployment.shortRouter, liquidator: deployment.liquidator },
+    services: [
+      { name: "rates", path: "/rates.json", price: "free" },
+      { name: "paid-rates", path: "/paid/rates", price: "0.01 USDT per call over B402 (x402 V2)" },
+      { name: "markets", path: "/markets", price: "free" },
+    ],
+    skills: ["lend", "borrow", "short", "cover", "weekend-market-making"],
+  }),
+);
 
 app.get("/account/:address", async (c) => {
   const address = c.req.param("address");

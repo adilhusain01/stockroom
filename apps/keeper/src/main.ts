@@ -2,10 +2,12 @@ import { log } from "./env.ts";
 import { relayOnce } from "./relay.ts";
 import { anchorOnce } from "./anchor.ts";
 import { liquidateOnce } from "./liquidate.ts";
+import * as nightdesk from "./nightdesk.ts";
 
 /**
  * Stockroom keeper. `relay` mirrors APRO (and Binance) prices into the RelayFeeds, `anchor` pushes reference
- * prints into the OracleRouter, `liquidate` runs the flash liquidator, `all` loops over the three.
+ * prints into the OracleRouter, `liquidate` runs the flash liquidator, `nightdesk` runs the weekend market-maker
+ * agent (`plan`, `run`, `close`, `register`), `all` loops over relay, anchor and liquidate.
  *   pnpm keeper all            run forever
  *   pnpm keeper relay --once   one pass
  *   DRY_RUN=1 pnpm keeper all  read everything, write nothing
@@ -34,7 +36,17 @@ async function loop(name: string, fn: () => Promise<number>, every: number) {
   }
 }
 
+const NIGHTDESK_EVERY = Number(process.env.NIGHTDESK_INTERVAL_SEC ?? 300) * 1000;
+
 const jobs: Record<string, () => Promise<void>> = {
+  nightdesk: async () => {
+    const sub = process.argv[3] ?? "plan";
+    if (sub === "plan") console.log(await nightdesk.plan());
+    else if (sub === "close") await nightdesk.close();
+    else if (sub === "register") console.log(await nightdesk.register());
+    else if (sub === "run") await loop("nightdesk", () => nightdesk.run(), NIGHTDESK_EVERY);
+    else throw new Error("nightdesk plan|run|close|register");
+  },
   relay: () => loop("relay", () => relayOnce({ dryRun }), RELAY_EVERY),
   anchor: () => loop("anchor", () => anchorOnce({ dryRun }), ANCHOR_EVERY),
   liquidate: () => loop("liquidate", () => liquidateOnce({ dryRun }), LIQ_EVERY),
@@ -48,7 +60,7 @@ const jobs: Record<string, () => Promise<void>> = {
 };
 
 if (!jobs[job]) {
-  console.error("usage: main.ts [relay|anchor|liquidate|all] [--once]");
+  console.error("usage: main.ts [relay|anchor|liquidate|nightdesk|all] [--once]");
   process.exit(1);
 }
 log("keeper", job, once ? "(once)" : "", dryRun ? "(dry run)" : "");

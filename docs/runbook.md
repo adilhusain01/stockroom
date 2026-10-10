@@ -38,7 +38,7 @@ Markets without an APRO feed (GOOGLB, AAPLB, MSTRB, SPYB, HOODB, AMZNB) stay unp
 
 ## 4. First live transactions
 
-`scripts/seed-mainnet.sh` lends 0.2 NVDAB, deposits 60 USDT, allows the short router, shorts 0.05 NVDAB and covers it. Lean budget: 0.03 BNB, 100 USDT and 0.3 NVDAB in the burner; about $12 is spent over the hackathon, the rest comes back. Every step prints its hash; record them in the submission.
+`scripts/fund-from-bnb.sh` turns part of the burner's BNB into USDT and NVDAB on PancakeSwap, so the only transfer needed is BNB. `scripts/seed-mainnet.sh` then lends 0.05 NVDAB, deposits 10 USDT, allows the short router, shorts 0.01 NVDAB and covers it. Budget: 0.05 BNB in the burner (about $37); about $8 is spent over the hackathon, the rest comes back. Every step prints its hash; record them in the submission.
 
 ## 5. Services
 

@@ -9,9 +9,9 @@ export ETH_RPC_URL="${BSC_RPC_URL:-https://bsc-rpc.publicnode.com}"
 DEP="$ROOT/contracts/deployments/56.json"
 KEY="$DEPLOYER_PRIVATE_KEY"
 ME="$DEPLOYER_ADDRESS"
-LEND=${LEND_RAW:-200000000000000000}       # 0.2 NVDAB
-SHORT=${SHORT_RAW:-50000000000000000}      # 0.05 NVDAB
-COLLATERAL=${COLLATERAL_WEI:-60000000000000000000}  # 60 USDT
+LEND=${LEND_RAW:-50000000000000000}        # 0.05 NVDAB
+SHORT=${SHORT_RAW:-10000000000000000}      # 0.01 NVDAB
+COLLATERAL=${COLLATERAL_WEI:-10000000000000000000}  # 10 USDT
 
 j() { python3 -c "import json;d=json.load(open('$DEP'));print($1)"; }
 NVDAB=$(j "d['tokens'][d['tickers'].index('NVDAB')]")

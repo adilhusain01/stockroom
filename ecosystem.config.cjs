@@ -18,7 +18,7 @@ module.exports = {
       cwd: `${root}/apps/keeper`,
       script: "node",
       args: "--import tsx src/main.ts nightdesk run",
-      env: { NODE_ENV: "production", NIGHTDESK_INTERVAL_SEC: "300", NIGHTDESK_TICKER: "NVDAB", NIGHTDESK_BORROW: "0.05", NIGHTDESK_COLLATERAL: "30" },
+      env: { NODE_ENV: "production", NIGHTDESK_INTERVAL_SEC: "300", NIGHTDESK_TICKER: "NVDAB", NIGHTDESK_BORROW: "0.01", NIGHTDESK_COLLATERAL: "5" },
       max_restarts: 50,
       restart_delay: 30000,
     },

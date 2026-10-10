@@ -1,0 +1,24 @@
+{
+  "name": "@stockroom/keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --import tsx src/main.ts",
+    "relay": "node --import tsx src/main.ts relay",
+    "anchor": "node --import tsx src/main.ts anchor",
+    "liquidate": "node --import tsx src/main.ts liquidate",
+    "test": "node --import tsx --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stockroom/sdk": "workspace:*",
+    "dotenv": "^17.2.3",
+    "viem": "^2.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

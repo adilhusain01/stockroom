@@ -94,24 +94,40 @@ export class BinanceWeb3Client {
     return this.request<unknown>("GET", "/api/v1/dex/market/rwa/platforms");
   }
 
+  // Parameter names below were found by probing on 2026-10-10 (the docs list none): the chain is always
+  // `binanceChainId`, platforms are `ondo` and `bstock`, and the price endpoint takes a comma list.
+
   rwaTokens(params: { platform?: string; sectorTab?: string; chainId?: string | number } = {}) {
-    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/tokens", params);
+    const { chainId, ...rest } = params;
+    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/tokens", { ...rest, binanceChainId: chainId });
   }
 
   rwaPrice(params: { chainId: string | number; contractAddresses: string }) {
-    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/price", params);
+    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/price", { binanceChainId: params.chainId, tokenContractAddresses: params.contractAddresses });
   }
 
   rwaUnderlyingMarket(params: { chainId: string | number; contractAddress: string }) {
-    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/underlying-market", params);
+    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/underlying-market", { binanceChainId: params.chainId, tokenContractAddress: params.contractAddress });
   }
 
   rwaUnderlyingProfile(params: { chainId: string | number; contractAddress: string }) {
-    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/underlying-profile", params);
+    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/underlying-profile", { binanceChainId: params.chainId, tokenContractAddress: params.contractAddress });
   }
 
   rwaSearch(params: { keyword: string; chainId?: string | number }) {
-    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/search", params);
+    return this.request<unknown>("GET", "/api/v1/dex/market/rwa/search", { keyword: params.keyword, binanceChainId: params.chainId });
+  }
+
+  /** Aggregated quote; `amount` is in the smallest unit of `fromTokenAddress`, `slippage` in percent. */
+  quoteSwap(params: { chainId: string | number; fromTokenAddress: string; toTokenAddress: string; amount: string; slippage?: number; userAddress?: string }) {
+    return this.request<unknown>("GET", "/api/v1/dex/aggregator/quote", {
+      binanceChainId: params.chainId,
+      fromTokenAddress: params.fromTokenAddress,
+      toTokenAddress: params.toTokenAddress,
+      amount: params.amount,
+      slippage: params.slippage ?? 0.5,
+      userAddress: params.userAddress,
+    });
   }
 
   // ---------------------------------------------------------------- Trading

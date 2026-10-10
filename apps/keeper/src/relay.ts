@@ -63,7 +63,16 @@ export async function relayOnce(opts: { dryRun?: boolean; minIntervalSec?: numbe
       continue;
     }
     const cur = await currentRelay(t.relay);
-    const changed = cur.answer !== next.answer || cur.updatedAt !== next.updatedAt;
+    let changed = cur.answer !== next.answer || cur.updatedAt !== next.updatedAt;
+    if (!t.source && cur.answer > 0n && changed) {
+      // Binance-sourced prices move every cycle; only pay gas for a move beyond the deviation threshold or
+      // when the on-chain print is about to go stale (heartbeat 1h plus 30min grace on the router).
+      const minBps = BigInt(process.env.RELAY_MIN_DEVIATION_BPS ?? 50);
+      const diff = cur.answer > next.answer ? cur.answer - next.answer : next.answer - cur.answer;
+      const beyond = diff * 10_000n > cur.answer * minBps;
+      const aging = now - cur.updatedAt >= 4800n; // 80 minutes
+      if (!beyond && !aging) changed = false;
+    }
     // APRO prints at least hourly, so by default only a new source round costs gas. RELAY_RESTAMP_SEC > 0
     // adds a periodic re-stamp for feeds whose source goes quiet.
     const restamp = BigInt(process.env.RELAY_RESTAMP_SEC ?? 0);

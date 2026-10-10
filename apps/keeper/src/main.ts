@@ -16,7 +16,7 @@ const job = process.argv[2] ?? "all";
 const once = process.argv.includes("--once");
 const dryRun = process.env.DRY_RUN === "1";
 const RELAY_EVERY = Number(process.env.RELAY_INTERVAL_SEC ?? 120) * 1000;
-const ANCHOR_EVERY = Number(process.env.ANCHOR_INTERVAL_SEC ?? 300) * 1000;
+const ANCHOR_EVERY = Number(process.env.ANCHOR_INTERVAL_SEC ?? 3600) * 1000;
 const LIQ_EVERY = Number(process.env.LIQUIDATE_INTERVAL_SEC ?? 30) * 1000;
 
 async function safe(name: string, fn: () => Promise<number>) {

@@ -22,9 +22,11 @@ Say: "Every transaction is simulated through the Binance Transaction API before 
 
 ## 4. The short that is already open (30 s)
 
-Open https://stockroom.adilhusain.xyz/app/account with the burner connected. Show the borrowing row: 0.01 NVDAB owed, liquidation price, health factor. Press Cover all and confirm.
+Open https://stockroom.adilhusain.xyz/app/account with the burner connected. Show the borrowing row: 0.02 NVDAB owed (0.01 is the demo short, 0.01 is the Night Desk's weekend borrow), the liquidation price, the health factor. Then open https://stockroom.adilhusain.xyz/app/market/NVDAB, Short tab, and cover 0.01, not all: the other 0.01 belongs to the Night Desk, which repays it itself before Monday's open.
 
 Say: "This short was opened against 3.9 USDT; the sale proceeds became margin. Cover buys it back and repays in one transaction."
+
+Then https://stockroom.adilhusain.xyz/app/desk: the desk is open, 0.01 NVDAB out as PancakeSwap liquidity (position 7653174), closing itself two hours before the Monday open.
 
 ## 5. The Agentic Wallet skill (50 s)
 

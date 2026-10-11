@@ -104,3 +104,10 @@ acknowledged_at = "2026-10-10T18:08:14Z"
 max_per_topup_usd = 1.0
 max_per_day_usd = 3.0
 max_per_month_usd = 15.0
+
+[identity]
+pending_endpoint = "https://stockroom.adilhusain.xyz/agent/"
+pending_action = "register"
+pending_at = "2026-10-11T06:12:35.034Z"
+pending_reason = "register tx pending"
+pending_tx = "0xd5842229f89b2fd1042885c88a8a896767583e9110754dd277d5b98ad8d84aac"

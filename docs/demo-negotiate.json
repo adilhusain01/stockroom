@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"message":{"kind":"message","messageId":"demo-1","role":"user","parts":[{"kind":"data","data":{"skill":"negotiate","task_description":"Desk brief for shorting 0.01 NVDAB against 10 USDT over the weekend","terms":{"deliverables":"borrow desk brief","quality_standards":"every number from live Stockroom data"}}}]}}}

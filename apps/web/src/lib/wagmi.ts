@@ -7,7 +7,7 @@ export const wagmiConfig = createConfig({
   chains: [bsc],
   connectors: [injected()],
   transports: {
-    [bsc.id]: http(process.env.NEXT_PUBLIC_BSC_RPC_URL ?? "https://bsc-rpc.publicnode.com"),
+    [bsc.id]: http(process.env.NEXT_PUBLIC_BSC_RPC_URL ?? "https://bsc-dataseed.binance.org"),
   },
   ssr: true,
 });

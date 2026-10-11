@@ -63,8 +63,12 @@ The full list with every feed is `contracts/deployments/56.json`, also served at
 | Night Desk's ERC-8004 identity, agent 371014 | `0x50bc4bac457141c348f4532516ad90eca8c68b6029763f50d6ab80ce20dfc146` |
 | Night Desk opens its weekend position: 5 USDT posted, 0.01 NVDAB borrowed | `0x14ce605a6f43f84f2b4cb7539513604a9ae1ba99d78e2de27759a88bebde90ef`, `0xcb30fe57eb5fb95b814473fed0889f6d9c1253afa1a5fb27f5a40623b7207d18` |
 | Night Desk mints its PancakeSwap v3 position (token 7653174, two percent either side of the price) | `0x8270bf03ae3e69a5a9ab3ec7ff3c4e4a332931a8812c94abb07a7c1f710143f5` |
+| Demo day, 11 October: lend 0.005 NVDAB from the web app (approve, deposit) | `0xe9fa5242f6ac4834773d45eb77f0573bd192552eab25a45575454625f518946e`, `0x5d6b9e6216c10c7823a6661e4128fe862e9016ecedb75835f6128226031cb7ef` |
+| Cover 0.01 NVDAB from the web app, one transaction | `0x3a48fb0fcddfd384cb369b5217be876ef9794a745ab62d85086b1af1d9243f82` |
+| Lend 0.003 NVDAB from the web app (approve, deposit) | `0x2543124284cfa73d4bacc42dd8d0180f6223dc1fc643f27842c7d2a1d4a291d1`, `0x71a463cac2930d9c85cddcc36018a6745016febbf10bb3fb9d4a3a5f71ddd873` |
+| Lend 0.02 NVDAB through the Wallet Skill and the Binance Agentic Wallet (approve, deposit) | `0xc305ad7aefdb3a9ddf5b6312e0b230a971895663553e25db411f7dc7051d4a52`, `0xef1fadf0219798ce3f4c4864617b28a90daca0b2aa0161945a9a2f4423aa0245` |
 
-The short is left open on purpose: it is the first utilisation on the NVDAB pool (25 percent), which is why `/rates.json` shows a non-zero supply rate. Prices for all five markets are relayed by the keeper every two minutes.
+The demo short was covered on 11 October; the 0.01 NVDAB still owed is the Night Desk's weekend borrow (21 percent utilisation after the demo lends), which is why `/rates.json` shows a non-zero supply rate. Prices for all five markets are relayed by the keeper every two minutes.
 
 ## Form answers, ready to paste
 

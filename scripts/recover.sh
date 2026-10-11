@@ -5,7 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 set -a; . "$ROOT/.env"; set +a
-export ETH_RPC_URL="${BSC_RPC_URL:-https://bsc-rpc.publicnode.com}"
+export ETH_RPC_URL="${GO_LIVE_RPC:-https://bsc-dataseed.binance.org}"  # sending RPC; publicnode refused receipt reads on 2026-10-11
 DEP="$ROOT/contracts/deployments/56.json"
 KEY="$DEPLOYER_PRIVATE_KEY"; ME="$DEPLOYER_ADDRESS"
 TO="${RECOVER_TO:-0xc31b6c70df4bd9716e9a5f419e4c308a8372eb32}"  # Adil's Binance deposit address (BSC), set 2026-10-10

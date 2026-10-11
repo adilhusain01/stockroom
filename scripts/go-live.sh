@@ -5,12 +5,14 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 set -a; . "$ROOT/.env"; set +a
-export ETH_RPC_URL="${BSC_RPC_URL:-https://bsc-rpc.publicnode.com}"
+# Sending goes through the official dataseed (publicnode refused a receipt read mid-swap on 2026-10-11).
+export ETH_RPC_URL="${GO_LIVE_RPC:-https://bsc-dataseed.binance.org}"
 ME="$DEPLOYER_ADDRESS"
 MARKETS="${MARKETS:-5}"
 BAL=$(cast balance "$ME")
 echo "burner $ME holds $(cast balance $ME --ether) BNB"
-[ "$(python3 -c "print($BAL >= 30000000000000000)")" = "True" ] || { echo "need at least 0.03 BNB"; exit 1; }
+# deploy, first prices, seed and the analyst wallet come to about 0.012 BNB; the swaps are skipped once done
+[ "$(python3 -c "print($BAL >= 20000000000000000)")" = "True" ] || { echo "need at least 0.02 BNB"; exit 1; }
 
 echo "== 1. swap BNB into USDT and NVDAB"
 bash "$ROOT/scripts/fund-from-bnb.sh"

@@ -48,6 +48,13 @@ Raw material only. The report itself has to be written by a person (the rules re
 - Public BSC RPCs (publicnode, bsc-dataseed) refuse archive reads, so an anvil fork becomes unusable within seconds of starting; fork tests that create a fresh fork per run are fine, a persistent sandbox needs a paid or keyed archive RPC.
 - Gas is 0.05 gwei: the whole 15-market deploy costs about 0.004 BNB.
 
+## Going live, 2026-10-11
+
+- Public RPCs, not the Binance stack, cost the most time. publicnode gated receipt reads mid-transaction ("Archive requests require a personal token"), bsc-dataseed refused every `eth_getLogs` ("limit exceeded") and refused `eth_getLogs` inside a JSON-RPC batch. The keeper now sends through dataseed and reads logs through publicnode in 1,000-block windows. A keyed RPC in the hackathon kit would have saved an hour.
+- The first end-to-end Agentic Wallet flow worked on the first try once Developer Mode was on: `market-order swap` filled 11 USDT to 0.0477 NVDAB in seconds (no order id visible in `market-order list` afterwards, though), `contract-call preview` on the Stockroom approve calldata came back with `simulationCode 000000000`, the allowance change and an empty risk list, and the Transaction API's own `simulate` agreed. The second step of a two-step sequence fails the dry-run until the first is mined, which is correct but worth a sentence in the docs.
+- Agent Studio: `bag erc8004 register` says it uses a sponsored relay but refused an empty wallet ("need ~0.002 BNB"); with 0.003 BNB it registered in one transaction and `bag erc8004 show` resolved the record, although the CLI reported the broadcast as "not confirmed yet" for five minutes after the block had it.
+- ShortRouter cover: offering the whole collateral as `maxIn` reverts with `InsufficientCollateral`, because the router withdraws the USDT before it repays. The API's builder sizes `maxIn` from a live aggregator quote and does not hit this; a hand-written script did.
+
 ## What we would ask for
 
 1. A documented way to allowlist a contract on the APRO bStocks feeds, or feeds without the EOA-only gate.

@@ -64,6 +64,18 @@ The full list with every feed is `contracts/deployments/56.json`, also served at
 
 The short is left open on purpose: it is the first utilisation on the NVDAB pool (25 percent), which is why `/rates.json` shows a non-zero supply rate. Prices for all five markets are relayed by the keeper every two minutes.
 
+## Form answers, ready to paste
+
+- Project name: Stockroom
+- One line: Stock lending for bStocks on BNB Chain: lend the tokenized stock you hold, keep every dividend, earn the borrow fee in USDT; borrow it to short, hedge or make markets while Wall Street sleeps.
+- Which tokenized stocks: bStocks (NVDAB, TSLAB, QQQB, SPCXB, CRCLB live; any of the 91 can be listed).
+- Deployed link: https://stockroom.adilhusain.xyz (app at /app, API at /api, agent card at /agent/.well-known/agent-card.json)
+- Repository: https://github.com/adilhusain01/stockroom (public)
+- Contracts: controller `0xbCD03d466a02adF97a953836D928548a660d1c9f` on BSC mainnet; full list in `contracts/deployments/56.json`
+- Binance Web3 API modules used: RWA Data, Trading (aggregator quotes and swaps), Transaction (simulate, gas price), Wallet (balances), DeFi (investment list), B402 (paid rate feed), Agentic Wallet (contract-call preview and execute through `skills/stockroom`), BNB Agent Studio (`agents/stockroomdesk`), ERC-8004 (agents 371009 and 371014)
+- Special prize tracks: Best Use of Agentic Wallet / Wallet Skills; Best Use of BNB Agent Studio
+- What is new: the first market where the stock itself can be borrowed on BSC (Venus and the others take it only as collateral); a price router built for a 24/7 token with a 24/5 reference; capital-free liquidations; the first on-chain equity borrow rate on BNB Chain
+
 ## Team
 
 Adil Husain and team. Built in 36 hours with Claude Code as the pair; all code in the repo, all tests in `contracts/test`.

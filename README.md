@@ -89,7 +89,7 @@ A buyer sends the `negotiate` skill with a task such as "Desk brief for shorting
 
 ## Status
 
-Contracts, keeper, API, SDK, skill, Night Desk, web app and the Desk Analyst agent are built; unit, fork and TypeScript tests pass (`pnpm -r test`, `forge test`, the agent's `pnpm test`). Not yet done: the mainnet deployment (waiting on a funded deployer), live keeper runs, the APRO allowlist request, a recorded demo, and the Developer Experience Report. `docs/architecture.md` has the component map and the threat model.
+Live on BSC mainnet since 11 October 2026: five markets (NVDAB, TSLAB, QQQB, SPCXB, CRCLB), controller `0xbCD03d466a02adF97a953836D928548a660d1c9f`, prices relayed every two minutes, the first lend and short on-chain, both agents registered on the ERC-8004 registry (371009 and 371014). Addresses and transaction hashes are in `docs/submission.md`; `docs/architecture.md` has the component map and the threat model; `docs/demo-script.md` is the shot list. Unit, fork and TypeScript tests pass (`pnpm -r test`, `forge test`, the agent's `pnpm test`). Still open: the APRO allowlist request and B402 merchant approval for the paid feed and the agent's x402 face.
 
 ## Money safety
 

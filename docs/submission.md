@@ -61,6 +61,8 @@ The full list with every feed is `contracts/deployments/56.json`, also served at
 | First short, 0.01 NVDAB borrowed and sold in one transaction (health factor 2.09 after) | `0xbcbd00be8e21b06a10cdc7714cca191ff41c02b5cc0227c219c99bbf02b6e561` |
 | Desk Analyst's ERC-8004 identity, agent 371009 | `0xd5842229f89b2fd1042885c88a8a896767583e9110754dd277d5b98ad8d84aac` |
 | Night Desk's ERC-8004 identity, agent 371014 | `0x50bc4bac457141c348f4532516ad90eca8c68b6029763f50d6ab80ce20dfc146` |
+| Night Desk opens its weekend position: 5 USDT posted, 0.01 NVDAB borrowed | `0x14ce605a6f43f84f2b4cb7539513604a9ae1ba99d78e2de27759a88bebde90ef`, `0xcb30fe57eb5fb95b814473fed0889f6d9c1253afa1a5fb27f5a40623b7207d18` |
+| Night Desk mints its PancakeSwap v3 position (token 7653174, two percent either side of the price) | `0x8270bf03ae3e69a5a9ab3ec7ff3c4e4a332931a8812c94abb07a7c1f710143f5` |
 
 The short is left open on purpose: it is the first utilisation on the NVDAB pool (25 percent), which is why `/rates.json` shows a non-zero supply rate. Prices for all five markets are relayed by the keeper every two minutes.
 

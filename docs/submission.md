@@ -33,9 +33,36 @@ Binance runs Fully Paid Securities Lending for its stock accounts off-chain. On-
 
 `docs/architecture.md` has the component map, the flows, who is trusted with what and the threat model.
 
-## Live transactions
+## Live transactions (BSC mainnet, 11 October 2026)
 
-Filled in at submission time: deploy, first lend, first short, first cover, Night Desk's weekend open, with BscScan links.
+Contracts, all from the deployer `0x8a3eAef16b6Ad7c9c678bDc32B5d4791b3A0bC2C`:
+
+| Contract | Address |
+|---|---|
+| Controller | `0xbCD03d466a02adF97a953836D928548a660d1c9f` |
+| OracleRouter | `0xB808bbd855b797aeD5BF29c4D12e3b64d10947E9` |
+| ShortRouter | `0xD26f84E4D11f5765147f421303008c9FBB1f5012` |
+| Liquidator | `0x13d046df01A2B24dFf47864C525b8800210331EC` |
+| MarketCalendar | `0x8D81cD41ef1a64e762D9aEcC4601bacFe6ba9528` |
+| NVDAB pool / relay feed | `0x9420cE0bf07edC8C598cd5b9e5e10D3E0fbEe712` / `0x84E777068790f1ADCd57d003e493045558530822` |
+| TSLAB pool / relay feed | `0xc7Dc0fcF9FC14B91b6E6F10bB21b1e0A7eCB0cE4` / `0xE4FE0C5Ec63cF3614dfEf61c29E8eD7d6B1bb3cE` |
+| QQQB pool / relay feed | `0xa8fb358f1d87Bca14A952cf5aDA317b0c20c0975` / `0x6594b9d62c02AeFbf041148e6133DE498286d189` |
+| SPCXB pool / relay feed | `0x0ED279E43Ca95787d990D9396F718F81D607Aa06` / `0xa2D68BC3D2E070C6b69eBBc6A167f3E6869563c8` |
+| CRCLB pool / relay feed | `0xC406FaCe8D27bB5A52763feAd78d3428DdC3d315` / `0x5850767a1c365c13fA3a9566e522A07d1958E52b` |
+
+The full list with every feed is `contracts/deployments/56.json`, also served at `/api/deployment`. Deploy transactions are in `contracts/broadcast/DeployBsc.s.sol/56/run-latest.json` (Controller create: `0xaafbf50ddf93dab29f790c059070212a40f7263601ca21230049a8ef5a02f68b`).
+
+| Step | Transaction |
+|---|---|
+| Buy 0.0477 NVDAB with 11 USDT on PancakeSwap v3 | `0x094d8d457e61459fa4ed9b647677622edf5c65c4cc066b38a7984f13d5ea0e0d` |
+| First lend, 0.04 NVDAB into the pool | `0xf3862ad46d668a7afc910acff13349f6cc0b8e6605796bd715142f5de25f5127` |
+| 3.9 USDT posted as collateral | `0x5a2d9ad66f3ec2b89340dc6dcf93ffc88ec18588f9967a5ac5e6d62bebce89e3` |
+| Short router allowed as operator | `0x94b183d9f8a2856d3eede6dd4497009d73d5cc5866ea105ae319d9a96dcc9b4c` |
+| First short, 0.01 NVDAB borrowed and sold in one transaction (health factor 2.09 after) | `0xbcbd00be8e21b06a10cdc7714cca191ff41c02b5cc0227c219c99bbf02b6e561` |
+| Desk Analyst's ERC-8004 identity, agent 371009 | `0xd5842229f89b2fd1042885c88a8a896767583e9110754dd277d5b98ad8d84aac` |
+| Night Desk's ERC-8004 identity, agent 371014 | `0x50bc4bac457141c348f4532516ad90eca8c68b6029763f50d6ab80ce20dfc146` |
+
+The short is left open on purpose: it is the first utilisation on the NVDAB pool (25 percent), which is why `/rates.json` shows a non-zero supply rate. Prices for all five markets are relayed by the keeper every two minutes.
 
 ## Team
 

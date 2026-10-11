@@ -11,6 +11,12 @@ config({ path: resolve(process.cwd(), ".env"), override: false, quiet: true });
 export const RPC_URL = process.env.BSC_RPC_URL ?? "https://bsc-rpc.publicnode.com";
 
 export const publicClient = createPublicClient({ chain: bsc, transport: http(RPC_URL, { batch: true }) });
+/**
+ * Log queries go to their own RPC, unbatched: on 2026-10-11 bsc-dataseed refused every eth_getLogs ("limit
+ * exceeded") while publicnode answered a 1,000-block window in half a second. LOGS_RPC_URL overrides.
+ */
+export const LOGS_RPC_URL = process.env.LOGS_RPC_URL ?? "https://bsc-rpc.publicnode.com";
+export const logsClient = createPublicClient({ chain: bsc, transport: http(LOGS_RPC_URL) });
 
 export function keeperAccount() {
   const key = process.env.KEEPER_PRIVATE_KEY as Hex | undefined;

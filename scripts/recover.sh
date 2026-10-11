@@ -37,7 +37,20 @@ for i in $(seq 0 $((N-1))); do
     echo "   cover $DEBT raw $T on PancakeSwap"
     FEE=$(printf '0x%06x' "$(python3 -c "import json;f=json.load(open('$ROOT/contracts/script/config/bsc-markets.json'))['poolFees'];print(f[$i])")")
     P=$(cast concat-hex "$TOKEN" "$FEE" "$USDT")
-    MAXIN=$(cast call "$CTL" "collateralOf(address)(uint256)" "$ME" | cut -d' ' -f1)
+    # The router withdraws the USDT for the buyback while the debt is still open, so the collateral left behind
+    # must still cover the debt at the initial ratio: maxIn = collateral - 1.5 x debt value. Taking the whole
+    # collateral reverts with InsufficientCollateral (seen on 2026-10-11). The debt value comes from the API.
+    COL=$(cast call "$CTL" "collateralOf(address)(uint256)" "$ME" | cut -d' ' -f1)
+    VAL=$(curl -sS "${STOCKROOM_API:-http://127.0.0.1:4310}/account/$ME" | python3 -c "import sys,json;a=json.load(sys.stdin);print(int(float(next(p['valueUsd'] for p in a['positions'] if p['ticker']=='$T'))*1e18))")
+    MAXIN=$(python3 -c "print(max(0, $COL - int(1.5 * $VAL)))")
+    NEED=$(python3 -c "print(int(1.04 * $VAL))")
+    if [ "$(python3 -c "print($MAXIN < $NEED)")" = "True" ]; then
+      TOPUP=$(python3 -c "print($NEED - $MAXIN)")
+      echo "   adding $TOPUP wei USDT of collateral so the buyback fits"
+      send "$USDT" "approve(address,uint256)(bool)" "$CTL" "$TOPUP"
+      send "$CTL" "depositCollateral(uint256,address)" "$TOPUP" "$ME"
+      MAXIN=$NEED
+    fi
     send "$SR" "cover(address,uint256,bytes,uint256)(uint256)" "$TOKEN" "$DEBT" "$P" "$MAXIN"
   fi
 done

@@ -1,4 +1,6 @@
-# stockroomdesk — A2A + MCP + X402 seller agent
+# stockroomdesk, the Stockroom Desk Analyst
+
+Stockroom's part of this agent is in `src/stockroomDesk.ts` (read-only API tools and the short-plan maths, tested by `src/stockroomDesk.test.ts`), `src/tools.ts` and `src/mcpMain.ts` (the tools exposed to the LLM and over MCP), `src/sellerCore.ts` (the delivery prompt) and `src/agentCard.ts` (name, pitch, skill descriptions). `pnpm test` runs the tests. The rest of this file is the scaffold's own guide and still applies.
 
 The valuable Agent and the **SOLE key-holder/signer** for the stockroomdesk seller.
 Serves A2A + MCP + X402 directly on AgentCore. Canonical quotes use the one

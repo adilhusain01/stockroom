@@ -29,16 +29,11 @@ Needs Foundry (forge, anvil, cast), Node 22+, pnpm 10 and a BSC RPC. Copy `.env.
 ```bash
 pnpm install
 pnpm contracts:test          # unit tests, no network
-pnpm contracts:fork          # mainnet fork tests (BSC_RPC_URL, defaults to publicnode)
+pnpm contracts:fork          # mainnet fork tests (BSC_RPC_URL; see docs/runbook.md for which public RPC does what)
 pnpm -r typecheck && pnpm -r test
 ```
 
-Deploy to BSC mainnet (writes `contracts/deployments/56.json`):
-
-```bash
-cd contracts
-forge script script/DeployBsc.s.sol --rpc-url $BSC_RPC_URL --broadcast --slow
-```
+The mainnet deployment is already in `contracts/deployments/56.json`; a fresh one is `MARKETS=5 scripts/go-live.sh` after moving that file away (`docs/runbook.md`). The keeper needs `DEPLOY_BLOCK` (the controller's deploy block, for the liquidation scan) and `LOGS_RPC_URL` (a public RPC that answers `eth_getLogs`; bsc-dataseed does not) in `.env`.
 
 Run the keeper and the API against that deployment:
 

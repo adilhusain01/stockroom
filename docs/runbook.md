@@ -1,82 +1,63 @@
 # Runbook: Stockroom on BSC mainnet
 
-Everything below runs from the repo root on the VPS. Secrets live in `.env` only.
+Everything below runs from the repo root on the VPS. Secrets live in `.env` only. Live since 11 October 2026: controller `0xbCD03d466a02adF97a953836D928548a660d1c9f`, five markets, addresses in `contracts/deployments/56.json`.
 
-## 1. Before deploying
+## 1. The machine
 
-- `.env` has `DEPLOYER_PRIVATE_KEY`, `DEPLOYER_ADDRESS`, `KEEPER_PRIVATE_KEY`, `KEEPER_ADDRESS` (the same burner for both is fine), `BSC_RPC_URL`, and when available `BINANCE_WEB3_API_KEY`, `BINANCE_WEB3_API_SECRET`, `BSCSCAN_API_KEY`.
-- The deployer holds at least 0.03 BNB. The full 15-market deploy simulated at 74.7M gas, about 0.004 BNB at 0.05 gwei; the lean plan deploys five.
-- `cd contracts && forge test` passes, and `forge test --match-path "test/fork/*" --no-match-path zzz` passes against the live chain.
-- `contracts/script/config/bsc-markets.json` lists the markets in priority order. The lean plan is `DEPLOY_MARKET_COUNT=5` (NVDAB, TSLAB, QQQB, SPCXB, CRCLB, all with APRO feeds); the other ten deploy later with the same command and a higher count once the first five are listed (re-running redeploys everything, so decide the count before broadcasting).
-
-## 2. Deploy
-
-```bash
-cd contracts
-set -a; . ../.env; set +a
-forge script script/DeployBsc.s.sol --rpc-url $BSC_RPC_URL --broadcast --slow -vv
-cat deployments/56.json          # commit this file
-```
-
-Verify on BscScan (optional, needs the key; repeat per contract or use the broadcast file with `forge verify-contract`):
+| Process (pm2) | What | Port |
+|---|---|---|
+| `stockroom-api` | Hono read API and transaction builders | 127.0.0.1:4310, public at `/api` |
+| `stockroom-web` | Next.js app | 127.0.0.1:3020, public at `/` |
+| `stockroom-keeper` | relay every 2 minutes, liquidation scan every 30 seconds, anchors hourly | |
+| `stockroom-desk` | the Night Desk loop, one step every 5 minutes | |
+| `stockroom-agent` | the Desk Analyst (BNB Agent Studio, `bag dev`) | 127.0.0.1:9010, public at `/agent` |
 
 ```bash
-forge verify-contract --chain 56 --etherscan-api-key $BSCSCAN_API_KEY <controller> src/Controller.sol:Controller \
-  --constructor-args $(cast abi-encode "constructor(address,address,address,address)" <usdt> <oracle> <riskEngine> <deployer>)
-```
-
-## 3. Prices on-chain
-
-The RelayFeeds are empty right after the deploy, so every market quote reverts until the keeper has written once:
-
-```bash
-pnpm keeper relay --once        # reads APRO from the keeper wallet, writes 13 feeds (12 bStocks + USDT)
-curl -s localhost:4310/markets | head -c 400   # after the API is up
-```
-
-Markets without an APRO feed (GOOGLB, AAPLB, MSTRB, SPYB, HOODB, AMZNB) stay unpriced until `BINANCE_WEB3_API_KEY` is set; the keeper then takes their on-chain price from the RWA Data API. Pause borrows on those markets until then: `cast send <controller> "setBorrowPaused(address,bool)" <token> true` from the keeper.
-
-## 4. First live transactions
-
-`scripts/fund-from-bnb.sh` turns part of the burner's BNB into USDT and NVDAB on PancakeSwap, so the only transfer needed is BNB. `scripts/seed-mainnet.sh` then lends 0.05 NVDAB, deposits 10 USDT, allows the short router, shorts 0.01 NVDAB and covers it. Budget: 0.05 BNB in the burner (about $37); about $8 is spent over the hackathon, the rest comes back. Every step prints its hash; record them in the submission.
-
-## 5. Services
-
-```bash
-pnpm exec pm2 start ecosystem.config.cjs && pnpm exec pm2 save     # keeper, desk, api, web
+pnpm exec pm2 list
 pnpm exec pm2 logs stockroom-keeper --lines 50
+pnpm exec pm2 restart stockroom-keeper stockroom-desk stockroom-api --update-env   # after a .env change
 ```
 
-Caddy block for `/etc/caddy/Caddyfile` (DNS: A record `stockroom.adilhusain.xyz` to the VPS IP first), then `systemctl reload caddy`:
+Caddy (`/etc/caddy/Caddyfile`): `handle_path /api/*` to 4310, `handle_path /agent/*` to 9010, everything else to 3020. The web app is built with `NEXT_PUBLIC_STOCKROOM_API=https://stockroom.adilhusain.xyz/api` in `apps/web/.env.local`.
 
-```
-stockroom.adilhusain.xyz {
-    handle_path /api/* {
-        reverse_proxy 127.0.0.1:4310
-    }
-    reverse_proxy 127.0.0.1:3020
-}
-```
+## 2. RPCs, learned the hard way
 
-The web app is built with `NEXT_PUBLIC_STOCKROOM_API=https://stockroom.adilhusain.xyz/api` in `apps/web/.env.local` before `pnpm --filter @stockroom/web build`.
+- `BSC_RPC_URL=https://bsc-dataseed.binance.org` for reads, sends and receipts. publicnode gated receipt reads with "Archive requests require a personal token" in the middle of the first swap.
+- `LOGS_RPC_URL=https://bsc-rpc.publicnode.com` for `eth_getLogs`; dataseed refuses every log query and refuses logs inside a JSON-RPC batch. The keeper reads logs unbatched in 1,000-block windows from `DEPLOY_BLOCK=126968300`.
+- The sending scripts (`go-live.sh`, `fund-from-bnb.sh`, `seed-mainnet.sh`, `recover.sh`, `transfer-ownership.sh`) use dataseed unless `GO_LIVE_RPC` says otherwise.
+- Anvil forks of BSC die within seconds on every public RPC; `scripts/fork-sandbox.sh` needs a keyed archive RPC.
 
-## 6. Night Desk
+## 3. Deploying again (only if ever needed)
+
+`contracts/deployments/56.json` exists, and `scripts/go-live.sh` refuses to redeploy while it does. To deploy a fresh set, move the file away, then `MARKETS=5 scripts/go-live.sh`: it swaps BNB into USDT and NVDAB (skipping what is already there), deploys, relays the first prices, runs the first lend and short, starts the services, funds the Desk Analyst wallet with 0.003 BNB and registers its ERC-8004 identity. The deployer needs 0.02 BNB once the USDT is in place, 0.03 from scratch.
+
+## 4. Night Desk
+
+State lives in `apps/keeper/runs/nightdesk.json` next to the process that runs it; if a position is opened by hand from another checkout, copy that file over before restarting the pm2 loop or the loop will try to open a second one. `pnpm keeper nightdesk plan` prints what the loop would do now. Sizes come from `NIGHTDESK_BORROW` and `NIGHTDESK_COLLATERAL` in `ecosystem.config.cjs` (0.01 NVDAB against 5 USDT). The loop opens while the session is closed and closes two hours before the next open, buying back any shortfall with the burner's USDT; keep a few USDT in the burner for that.
+
+## 5. Desk Analyst
 
 ```bash
-pnpm keeper nightdesk register     # ERC-8004 identity, once, about $0.01 of gas
-pnpm keeper nightdesk plan         # what it would do now
+cd agents/stockroomdesk/app/agent
+bag wallet status            # keystore 0xf38eD31AcD342c17AA38ca0fA02215AFD1EBa265, secrets in ../../.studio (never in git)
+bag erc8004 show --network bsc-mainnet   # agent 371009
+pnpm test                    # desk maths, no network
 ```
 
-The pm2 `stockroom-desk` process runs the loop: borrow after the Friday close, LP on PancakeSwap, unwind two hours before the Monday open. Sizes come from `NIGHTDESK_BORROW` and `NIGHTDESK_COLLATERAL` in `ecosystem.config.cjs`; keep them small.
+The agent card is at `/agent/.well-known/agent-card.json`, MCP at `/agent/mcp`, the x402 face stays dormant until a B402 merchant is approved for that wallet. `.studio/` holds the keystore and the Pieverse LLM key; it is copied by hand between checkouts.
 
-## 7. When APRO allowlists the OracleRouter
+## 6. Agentic Wallet skill
+
+The `baw` CLI is paired on the VPS to Adil's Agentic Wallet `0x7b6c346c69da73a1aaf9cbfedf4c07981fe263fc` (session to 12 October 23:50 CEST; `baw wallet status --json` is the truth). `skills/stockroom/scripts/stockroom.sh preview lend ticker=NVDAB amount=0.02 account=0x7b6c…` previews each step with the Binance dry-run and the wallet's own simulation; `execute <requestId>` sends one step. Previews expire, so preview again right before each execute. Developer Mode is on in the Binance app until 17 October.
+
+## 7. Pausing and emergencies
+
+The keeper is the guardian: `setGlobalBorrowPause(true)` on the Controller stops every new borrow in one transaction; repay, withdraw and liquidate keep working. `setBorrowPaused(token, true)` does it per market. `scripts/recover.sh` unwinds everything the burner holds (desk close, cover or repay, withdraw, redeem, claim, sell bStocks to USDT) and sends it to `RECOVER_TO` (default: Adil's Binance deposit address); it also sweeps the analyst wallet's BNB.
+
+## 8. When APRO allowlists the OracleRouter
 
 ```bash
 cast send <oracle> "setFeed(address,address,uint32)" <token> <aproFeed> 3600 --private-key $DEPLOYER_PRIVATE_KEY
 ```
 
 per market, and the relay for that market becomes redundant (leave the keeper running; it keeps the cash feed and anchors).
-
-## 8. Pausing
-
-The keeper is the guardian: `setGlobalBorrowPause(true)` on the Controller stops every new borrow in one transaction; repay, withdraw and liquidate keep working. `setBorrowPaused(token, true)` does it per market.

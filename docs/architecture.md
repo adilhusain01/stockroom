@@ -88,6 +88,20 @@ Not done: no external audit. Unit and BSC fork tests cover the contracts (`forge
 
 ## Addresses that matter (checked on BSC)
 
+Stockroom, deployed 11 October 2026 (the full list, with every pool and relay feed, is `contracts/deployments/56.json`, served at `/api/deployment`):
+
+| Contract | Address |
+|---|---|
+| Controller | `0xbCD03d466a02adF97a953836D928548a660d1c9f` |
+| OracleRouter | `0xB808bbd855b797aeD5BF29c4D12e3b64d10947E9` |
+| ShortRouter | `0xD26f84E4D11f5765147f421303008c9FBB1f5012` |
+| Liquidator | `0x13d046df01A2B24dFf47864C525b8800210331EC` |
+| MarketCalendar | `0x8D81cD41ef1a64e762D9aEcC4601bacFe6ba9528` |
+| RiskMathRef | `0x2Ae403D56014a744EF13aE4f63Cca142b55897Fe` |
+| NVDAB LendingPool | `0x9420cE0bf07edC8C598cd5b9e5e10D3E0fbEe712` |
+
+Around it:
+
 | What | Address |
 |---|---|
 | NVDAB (BEP-677, 18 decimals) | `0x02Fca66C1D1aFB4E2A7884261eB00F63598a7436` |
@@ -96,5 +110,5 @@ Not done: no external audit. Unit and BSC fork tests cover the contracts (`forge
 | NVDAB/USDT 0.25 percent pool | `0x8FB4243b553aC29BA088aCf00B9B7dA24bD6690C` |
 | APRO NVDAB/USD feed | `0x310EFC9Fefe89B8085F89E91Ac782Bef6416499E` |
 | ERC-8004 identity registry | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
-
-Stockroom's own contract addresses are written to `contracts/deployments/56.json` at deploy and served at `/api/deployment`.
+| Night Desk, ERC-8004 agent 371014 | keeper wallet `0x8a3eAef16b6Ad7c9c678bDc32B5d4791b3A0bC2C` |
+| Desk Analyst, ERC-8004 agent 371009 | `0xf38eD31AcD342c17AA38ca0fA02215AFD1EBa265` |

@@ -1,36 +1,15 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stockroom web app
 
-## Getting Started
+Next.js 16 (App Router, Cache Components), shadcn on Base UI, Tailwind v4, wagmi with the injected connector, TanStack Query. It reads the Stockroom API and sends the API's prepared calldata through whichever wallet the browser injects.
 
-First, run the development server:
+Pages: `/` is the landing page (the idea in one chart, a worked example, how it works, safeguards). The desk lives under `/app`: markets overview, `/app/market/[ticker]` with the lend and short panel, `/app/account`, `/app/desk` (Night Desk), `/app/rates`. Old paths redirect.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local        # NEXT_PUBLIC_STOCKROOM_API, default http://localhost:4310
+pnpm dev                          # http://localhost:3000, needs the API running (pnpm api from the repo root)
+pnpm build && pnpm start          # production; pm2 runs this as stockroom-web on 127.0.0.1:3020
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Design tokens live in `src/app/globals.css` (concrete paper, blue-black ink, signal orange; Bricolage Grotesque, Instrument Sans, JetBrains Mono). Shared pieces are in `src/components/sheet.tsx`; the app frame is `src/components/app-shell.tsx`. Every transaction goes through `src/hooks/use-tx.ts`, which asks the API for the steps with `simulate=1` so the Binance Transaction API dry-run is shown before the wallet opens.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`AGENTS.md` here is written by `next dev` and points at the bundled Next.js docs; leave it alone.

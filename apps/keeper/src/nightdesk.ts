@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { encodeFunctionData, formatUnits, parseAbi, parseUnits, type Address, type Hex } from "viem";
 import { bep677Abi, ControllerAbi, LendingPoolAbi, MarketCalendarAbi, OracleRouterAbi, pancakeV3PoolAbi } from "@stockroom/sdk";
-import { deployment, keeperAccount, log, markets, publicClient, walletClient } from "./env.ts";
+import { deployment, keeperAccount, log, markets, publicClient, walletClient , waitReceipt } from "./env.ts";
 
 /**
  * Night Desk: the first borrower on Stockroom. Every Friday after the US close it borrows bStocks against USDT,
@@ -136,7 +136,7 @@ export async function plan(): Promise<string> {
 async function send(to: Address, data: Hex, what: string): Promise<Hex> {
   const wallet = walletClient();
   const hash = await wallet.sendTransaction({ to, data });
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await waitReceipt(hash);
   if (receipt.status !== "success") throw new Error(`${what} reverted: ${hash}`);
   log("nightdesk tx", what, hash);
   return hash;

@@ -1,5 +1,5 @@
 import { bep677Abi, OracleRouterAbi } from "@stockroom/sdk";
-import { binanceClient, deployment, log, markets, publicClient, walletClient } from "./env.ts";
+import { binanceClient, deployment, log, markets, publicClient, walletClient , waitReceipt } from "./env.ts";
 import { anchorWad, bstockByAddress } from "./binance-prices.ts";
 
 /**
@@ -33,7 +33,7 @@ export async function anchorOnce(opts: { dryRun?: boolean } = {}): Promise<numbe
       continue;
     }
     const hash = await wallet.writeContract({ address: deployment().oracle, abi: OracleRouterAbi, functionName: "setAnchor", args: [m.token, priceWad] });
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitReceipt(hash);
     writes++;
   }
   return writes;

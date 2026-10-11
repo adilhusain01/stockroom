@@ -28,6 +28,22 @@ export function walletClient() {
   return createWalletClient({ chain: bsc, transport: http(RPC_URL), account: keeperAccount() });
 }
 
+/**
+ * Poll for a receipt the plain way. viem's waitForTransactionReceipt also fetches whole blocks to detect
+ * replacements, and public BSC RPCs answered that with "HTTP request failed" right after every send.
+ */
+export async function waitReceipt(hash: Hex, timeoutMs = 120_000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    try {
+      return await publicClient.getTransactionReceipt({ hash });
+    } catch {
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+  throw new Error(`no receipt for ${hash} after ${Math.round(timeoutMs / 1000)}s`);
+}
+
 let cachedDeployment: Deployment | null = null;
 
 /** The deployment file is read on first use so unit tests can import this module without one. */

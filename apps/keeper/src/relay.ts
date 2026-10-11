@@ -1,6 +1,6 @@
 import { aggregatorV3Abi, RelayFeedAbi } from "@stockroom/sdk";
 import type { Address } from "viem";
-import { deployment, keeperAccount, log, markets, publicClient, walletClient } from "./env.ts";
+import { deployment, keeperAccount, log, markets, publicClient, walletClient , waitReceipt } from "./env.ts";
 import { binancePrices } from "./binance-prices.ts";
 
 /**
@@ -92,7 +92,7 @@ export async function relayOnce(opts: { dryRun?: boolean; minIntervalSec?: numbe
       functionName: "setAnswer",
       args: [next.answer, changed ? updatedAt : now],
     });
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitReceipt(hash);
     writes++;
   }
   return writes;
